@@ -120,6 +120,7 @@ export default function AlbumPhotosPage({
         photoType={albumId.startsWith("cruising-") ? "cruising" : "gallery"}
         currentUserName={session?.user?.name || null}
         currentUserId={session?.user?.id || null}
+        isAdmin={session?.user?.role === "ADMIN"}
         onPhotosChange={(updated) =>
           setAlbum((prev) => (prev ? { ...prev, photos: updated as Photo[] } : prev))
         }

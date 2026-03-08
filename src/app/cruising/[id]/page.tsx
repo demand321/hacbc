@@ -748,6 +748,7 @@ export default function CruisingDetailPage() {
         photoType="cruising"
         currentUserName={session?.user?.name || null}
         currentUserId={session?.user?.id || null}
+        isAdmin={session?.user?.role === "ADMIN"}
         onPhotosChange={(updated) =>
           setEvent((prev) => (prev ? { ...prev, photos: updated as CruisingPhoto[] } : prev))
         }

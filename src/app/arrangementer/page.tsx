@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Calendar } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 type EventItem = {
   id: string;
   title: string;

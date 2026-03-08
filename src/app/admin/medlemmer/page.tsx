@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { MemberManagement } from "./MemberManagement";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminMembersPage() {
   const users = await prisma.user.findMany({
     orderBy: [{ memberStatus: "asc" }, { createdAt: "desc" }],

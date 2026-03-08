@@ -12,6 +12,8 @@ import {
 import { Plus, Pencil } from "lucide-react";
 import { OrderStatusSelect } from "./OrderStatusSelect";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminShopPage() {
   const [products, orders] = await Promise.all([
     prisma.product.findMany({ orderBy: { sortOrder: "asc" } }),

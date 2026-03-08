@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlbumActions } from "./AlbumActions";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminGalleryPage() {
   const [albums, events] = await Promise.all([
     prisma.album.findMany({

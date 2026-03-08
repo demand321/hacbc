@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DeleteVehicleButton } from "./DeleteVehicleButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function MyVehiclesPage() {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;

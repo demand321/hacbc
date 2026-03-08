@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, MessageCircle, Send, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, MessageCircle, Send, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -24,6 +24,7 @@ export interface LightboxPhoto {
   comment?: string | null;
   caption?: string | null;
   uploaderName?: string | null;
+  uploadedById?: string | null;
   uploadedBy?: { name: string } | null;
   likes: PhotoLike[];
   comments: PhotoComment[];
@@ -37,6 +38,7 @@ interface PhotoLightboxProps {
   photoType: "cruising" | "gallery";
   currentUserName?: string | null;
   currentUserId?: string | null;
+  isAdmin?: boolean;
   onPhotosChange?: (photos: LightboxPhoto[]) => void;
 }
 
@@ -48,6 +50,7 @@ export default function PhotoLightbox({
   photoType,
   currentUserName,
   currentUserId,
+  isAdmin = false,
   onPhotosChange,
 }: PhotoLightboxProps) {
   const [commentInput, setCommentInput] = useState("");
@@ -64,6 +67,26 @@ export default function PhotoLightbox({
   const userHasLiked = currentUserId
     ? photo.likes.some((l) => l.userId === currentUserId)
     : false;
+
+  const canDelete = isAdmin || (currentUserId && photo.uploadedById === currentUserId);
+
+  const handleDelete = async () => {
+    if (!confirm("Slette dette bildet?")) return;
+    try {
+      const res = await fetch(`/api/photos/${photo.id}?type=${photoType}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        const updated = photos.filter((_, i) => i !== selectedIndex);
+        onPhotosChange?.(updated);
+        if (updated.length === 0) {
+          onClose();
+        } else {
+          onNavigate(Math.min(selectedIndex, updated.length - 1));
+        }
+      }
+    } catch {}
+  };
 
   const handleLike = async () => {
     const authorName = currentUserName || nameInput.trim();
@@ -179,9 +202,20 @@ export default function PhotoLightbox({
                 </p>
               )}
             </div>
-            <button onClick={onClose} className="ml-2 text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
+            <div className="ml-2 flex items-center gap-1">
+              {canDelete && (
+                <button
+                  onClick={handleDelete}
+                  className="text-muted-foreground hover:text-red-500"
+                  title="Slett bilde"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              )}
+              <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Like bar */}

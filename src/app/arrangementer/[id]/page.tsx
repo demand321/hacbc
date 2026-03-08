@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { ArrowLeft, MapPin, Clock, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users, Calendar, ShoppingBag, Clock } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboard() {
   const [memberCount, pendingCount, eventCount, orderCount] = await Promise.all(
     [

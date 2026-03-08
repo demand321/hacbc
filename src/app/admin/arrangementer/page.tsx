@@ -12,6 +12,8 @@ import {
 import { Plus, Pencil } from "lucide-react";
 import { DeleteEventButton } from "./DeleteEventButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminEventsPage() {
   const events = await prisma.event.findMany({
     orderBy: { date: "desc" },
