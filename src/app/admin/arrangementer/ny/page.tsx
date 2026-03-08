@@ -1,0 +1,142 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+export default function CreateEventPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    endDate: "",
+    location: "",
+    address: "",
+    imageUrl: "",
+    isPublished: false,
+  });
+
+  function update(field: string, value: string | boolean) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+
+    const res = await fetch("/api/admin/arrangementer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        date: new Date(form.date).toISOString(),
+        endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
+      }),
+    });
+
+    if (res.ok) {
+      router.push("/admin/arrangementer");
+      router.refresh();
+    } else {
+      setLoading(false);
+      alert("Noe gikk galt. Prøv igjen.");
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="mb-6 text-xl font-semibold">Nytt arrangement</h2>
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
+        <div>
+          <Label htmlFor="title">Tittel *</Label>
+          <Input
+            id="title"
+            required
+            value={form.title}
+            onChange={(e) => update("title", e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="description">Beskrivelse</Label>
+          <Textarea
+            id="description"
+            rows={5}
+            value={form.description}
+            onChange={(e) => update("description", e.target.value)}
+          />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="date">Startdato *</Label>
+            <Input
+              id="date"
+              type="datetime-local"
+              required
+              value={form.date}
+              onChange={(e) => update("date", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="endDate">Sluttdato</Label>
+            <Input
+              id="endDate"
+              type="datetime-local"
+              value={form.endDate}
+              onChange={(e) => update("endDate", e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="location">Sted</Label>
+            <Input
+              id="location"
+              value={form.location}
+              onChange={(e) => update("location", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="address">Adresse</Label>
+            <Input
+              id="address"
+              value={form.address}
+              onChange={(e) => update("address", e.target.value)}
+            />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="imageUrl">Bilde-URL</Label>
+          <Input
+            id="imageUrl"
+            type="url"
+            value={form.imageUrl}
+            onChange={(e) => update("imageUrl", e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            id="isPublished"
+            type="checkbox"
+            checked={form.isPublished}
+            onChange={(e) => update("isPublished", e.target.checked)}
+            className="h-4 w-4 accent-hacbc-red"
+          />
+          <Label htmlFor="isPublished">Publiser med en gang</Label>
+        </div>
+        <div className="flex gap-3 pt-4">
+          <Button type="submit" disabled={loading} className="bg-hacbc-red hover:bg-hacbc-red/80">
+            {loading ? "Lagrer..." : "Opprett arrangement"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Avbryt
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}

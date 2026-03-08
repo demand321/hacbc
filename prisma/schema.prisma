@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  VISITOR
+  MEMBER
+  ADMIN
+}
+
+enum MemberStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  passwordHash   String
+  name           String
+  phone          String?
+  avatarUrl      String?
+  role           Role         @default(MEMBER)
+  memberStatus   MemberStatus @default(PENDING)
+  memberSince    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  vehicles         Vehicle[]
+  photos           Photo[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  orders           Order[]
+}
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  make        String
+  model       String
+  year        Int?
+  description String?  @db.Text
+  specs       Json?
+  imageUrls   String[]
+  published   Boolean  @default(false)
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  date        DateTime
+  endDate     DateTime?
+  location    String?
+  address     String?
+  lat         Float?
+  lng         Float?
+  imageUrl    String?
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  albums Album[]
+}
+
+model Album {
+  id        String   @id @default(cuid())
+  title     String
+  eventId   String?
+  event     Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  photos Photo[]
+
+  @@index([eventId])
+}
+
+model Photo {
+  id           String   @id @default(cuid())
+  url          String
+  storagePath  String
+  caption      String?
+  albumId      String
+  album        Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([albumId])
+  @@index([uploadedById])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  price       Int
+  imageUrls   String[]
+  inStock     Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  note      String?     @db.Text
+  status    String      @default("ny")
+  createdAt DateTime    @default(now())
+
+  items OrderItem[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  size      String?
+
+  @@index([orderId])
+}
+
+model CruisingRoute {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  waypoints Waypoint[]
+}
+
+model Waypoint {
+  id        String        @id @default(cuid())
+  routeId   String
+  route     CruisingRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  name      String
+  lat       Float
+  lng       Float
+  sortOrder Int
+  note      String?
+
+  @@index([routeId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content    String   @db.Text
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([senderId, receiverId])
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String?
+  body      String?  @db.Text
+  imageUrl  String?
+  updatedAt DateTime @updatedAt
+}

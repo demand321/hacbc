@@ -3,7 +3,14 @@
     "allow": [
       "Bash(cp:*)",
       "Bash(npm install:*)",
-      "Bash(npx shadcn@latest:*)"
+      "Bash(npx shadcn@latest:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl:*)",
+      "Bash(npx next:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsx:*)",
+      "Bash(git:*)"
     ]
   }
 }
