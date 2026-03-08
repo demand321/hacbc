@@ -116,6 +116,15 @@ export default async function ArrangementerPage() {
             {past.map((event: EventItem) => (
               <Link key={event.id} href={`/arrangementer/${event.id}`}>
                 <Card className="group h-full border-border bg-card opacity-75 transition-colors hover:border-hacbc-red/30 hover:opacity-100">
+                  {event.imageUrl && (
+                    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-xl">
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                  )}
                   <CardContent className="flex items-start gap-4 pt-2">
                     <DateBadge date={event.date} />
                     <div className="min-w-0 flex-1">
