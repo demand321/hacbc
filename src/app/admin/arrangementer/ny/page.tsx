@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function CreateEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [routes, setRoutes] = useState<{ id: string; title: string }[]>([]);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -18,8 +19,16 @@ export default function CreateEventPage() {
     location: "",
     address: "",
     imageUrl: "",
+    routeId: "",
     isPublished: false,
   });
+
+  useEffect(() => {
+    fetch("/api/admin/cruising")
+      .then((res) => res.json())
+      .then((data) => setRoutes(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   function update(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -110,13 +119,58 @@ export default function CreateEventPage() {
           </div>
         </div>
         <div>
-          <Label htmlFor="imageUrl">Bilde-URL</Label>
-          <Input
-            id="imageUrl"
-            type="url"
-            value={form.imageUrl}
-            onChange={(e) => update("imageUrl", e.target.value)}
-          />
+          <Label htmlFor="imageUrl">Bilde</Label>
+          <div className="flex gap-2">
+            <Input
+              id="imageUrl"
+              value={form.imageUrl}
+              onChange={(e) => update("imageUrl", e.target.value)}
+              placeholder="URL eller last opp"
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
+                input.onchange = async () => {
+                  const file = input.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  const res = await fetch("/api/upload", { method: "POST", body: formData });
+                  if (res.ok) {
+                    const data = await res.json();
+                    update("imageUrl", data.url);
+                  }
+                };
+                input.click();
+              }}
+            >
+              Last opp
+            </Button>
+          </div>
+          {form.imageUrl && (
+            <img src={form.imageUrl} alt="Forhåndsvisning" className="mt-2 h-32 rounded-lg object-cover" />
+          )}
+        </div>
+        <div>
+          <Label htmlFor="routeId">Rute (valgfritt)</Label>
+          <select
+            id="routeId"
+            value={form.routeId}
+            onChange={(e) => update("routeId", e.target.value)}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="">Ingen rute</option>
+            {routes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.title}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-2">
           <input

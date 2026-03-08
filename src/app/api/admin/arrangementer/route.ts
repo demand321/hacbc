@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       location: body.location || null,
       address: body.address || null,
       imageUrl: body.imageUrl || null,
+      routeId: body.routeId || null,
       isPublished: body.isPublished ?? false,
     },
   });
@@ -71,6 +72,7 @@ export async function PATCH(req: NextRequest) {
       location: data.location || null,
       address: data.address || null,
       imageUrl: data.imageUrl || null,
+      routeId: data.routeId !== undefined ? (data.routeId || null) : undefined,
       isPublished: data.isPublished ?? undefined,
     },
   });

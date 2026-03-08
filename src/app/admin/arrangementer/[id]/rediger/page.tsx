@@ -20,6 +20,7 @@ export default function EditEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [routes, setRoutes] = useState<{ id: string; title: string }[]>([]);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -28,14 +29,18 @@ export default function EditEventPage() {
     location: "",
     address: "",
     imageUrl: "",
+    routeId: "",
     isPublished: false,
   });
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`/api/admin/arrangementer?id=${id}`);
-      if (res.ok) {
-        const event = await res.json();
+      const [eventRes, routesRes] = await Promise.all([
+        fetch(`/api/admin/arrangementer?id=${id}`),
+        fetch("/api/admin/cruising"),
+      ]);
+      if (eventRes.ok) {
+        const event = await eventRes.json();
         setForm({
           title: event.title ?? "",
           description: event.description ?? "",
@@ -44,8 +49,13 @@ export default function EditEventPage() {
           location: event.location ?? "",
           address: event.address ?? "",
           imageUrl: event.imageUrl ?? "",
+          routeId: event.routeId ?? "",
           isPublished: event.isPublished ?? false,
         });
+      }
+      if (routesRes.ok) {
+        const data = await routesRes.json();
+        setRoutes(Array.isArray(data) ? data : data.routes || []);
       }
       setFetching(false);
     }
@@ -146,13 +156,58 @@ export default function EditEventPage() {
           </div>
         </div>
         <div>
-          <Label htmlFor="imageUrl">Bilde-URL</Label>
-          <Input
-            id="imageUrl"
-            type="url"
-            value={form.imageUrl}
-            onChange={(e) => update("imageUrl", e.target.value)}
-          />
+          <Label htmlFor="imageUrl">Bilde</Label>
+          <div className="flex gap-2">
+            <Input
+              id="imageUrl"
+              value={form.imageUrl}
+              onChange={(e) => update("imageUrl", e.target.value)}
+              placeholder="URL eller last opp"
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
+                input.onchange = async () => {
+                  const file = input.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  const res = await fetch("/api/upload", { method: "POST", body: formData });
+                  if (res.ok) {
+                    const data = await res.json();
+                    update("imageUrl", data.url);
+                  }
+                };
+                input.click();
+              }}
+            >
+              Last opp
+            </Button>
+          </div>
+          {form.imageUrl && (
+            <img src={form.imageUrl} alt="Forhåndsvisning" className="mt-2 h-32 rounded-lg object-cover" />
+          )}
+        </div>
+        <div>
+          <Label htmlFor="routeId">Rute (valgfritt)</Label>
+          <select
+            id="routeId"
+            value={form.routeId}
+            onChange={(e) => update("routeId", e.target.value)}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="">Ingen rute</option>
+            {routes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.title}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-2">
           <input
