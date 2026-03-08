@@ -16,6 +16,7 @@ import {
   Upload,
   Image as ImageIcon,
 } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const RouteEditor = dynamic(() => import("./RouteEditor"), {
   ssr: false,
@@ -383,12 +384,11 @@ export default function AdminCruisingPage() {
                 <h3 className="text-sm font-medium">Ny cruising</h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <Label htmlFor="evDate">Dato *</Label>
-                    <Input
-                      id="evDate"
-                      type="date"
+                    <Label>Dato *</Label>
+                    <DatePicker
                       value={newEvent.date}
-                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                      onChange={(val) => setNewEvent({ ...newEvent, date: val })}
+                      placeholder="Velg dato"
                     />
                   </div>
                   <div>
@@ -407,7 +407,7 @@ export default function AdminCruisingPage() {
                     id="evRoute"
                     value={newEvent.routeId}
                     onChange={(e) => setNewEvent({ ...newEvent, routeId: e.target.value })}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm"
                   >
                     <option value="">Ingen rute valgt</option>
                     {routes.filter((r) => r.id).map((r) => (
