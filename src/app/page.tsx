@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Calendar, Car, Camera, ShoppingBag, MapPin, ArrowRight } from "lucide-react";
+import { Calendar, Car, Camera, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
@@ -25,10 +25,10 @@ const features = [
     href: "/galleri",
   },
   {
-    icon: ShoppingBag,
-    title: "Klubbshop",
-    description: "Caps, luer og mer",
-    href: "/shop",
+    icon: MapPin,
+    title: "Cruising",
+    description: "Se ruter og bilder fra cruising",
+    href: "/cruising",
   },
 ];
 
@@ -147,8 +147,8 @@ export default async function Home() {
                 arrangerer regelmessige treff, cruising og sosiale samlinger.
               </p>
               <p className="mt-4 text-muted-foreground">
-                I sommersesongen arrangerer vi onsdags-cruising der vi kjører
-                sammen gjennom vakre omgivelser i Hamar-regionen.
+                I sommersesongen arrangerer vi cruising der vi kjører sammen
+                gjennom vakre omgivelser i Hamar-regionen.
               </p>
               <Button asChild className="mt-6" variant="outline">
                 <Link href="/cruising">Se cruising-ruter</Link>

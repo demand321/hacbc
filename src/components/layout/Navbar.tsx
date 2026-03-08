@@ -13,12 +13,12 @@ const publicLinks = [
   { href: "/kjoretoy", label: "Kjøretøy" },
   { href: "/arrangementer", label: "Arrangementer" },
   { href: "/galleri", label: "Galleri" },
-  { href: "/shop", label: "Klubbshop" },
   { href: "/cruising", label: "Cruising" },
 ];
 
 const memberLinks = [
   { href: "/medlem", label: "Mitt område" },
+  { href: "/medlem/shop", label: "Klubbshop" },
   { href: "/medlem/meldinger", label: "Meldinger" },
 ];
 

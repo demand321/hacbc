@@ -89,9 +89,9 @@ async function main() {
   // Create sample cruising route
   const route = await prisma.cruisingRoute.create({
     data: {
-      title: "Onsdags-cruising Hamar",
+      title: "Hamar - Mjøsa rundt",
       description:
-        "Standard onsdags-cruising rute. Vi starter fra Vandrerhjemmet og kjører en tur rundt Mjøsa.",
+        "Standard rute. Vi starter fra Vandrerhjemmet og kjører en tur rundt Mjøsa.",
       isActive: true,
       waypoints: {
         create: [

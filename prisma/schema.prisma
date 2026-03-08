@@ -37,6 +37,7 @@ model User {
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
   orders           Order[]
+  cruisingPhotos   CruisingPhoto[]
 }
 
 model Vehicle {
@@ -149,6 +150,38 @@ model CruisingRoute {
   updatedAt   DateTime @updatedAt
 
   waypoints Waypoint[]
+  events    CruisingEvent[]
+}
+
+model CruisingEvent {
+  id          String   @id @default(cuid())
+  date        DateTime
+  title       String
+  description String?  @db.Text
+  routeId     String?
+  route       CruisingRoute? @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  photos CruisingPhoto[]
+
+  @@index([routeId])
+  @@index([date])
+}
+
+model CruisingPhoto {
+  id           String        @id @default(cuid())
+  url          String
+  storagePath  String
+  comment      String?
+  eventId      String
+  event        CruisingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime      @default(now())
+
+  @@index([eventId])
+  @@index([uploadedById])
 }
 
 model Waypoint {
