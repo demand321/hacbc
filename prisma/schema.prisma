@@ -39,6 +39,7 @@ model User {
   orders           Order[]
   cruisingPhotos   CruisingPhoto[]
   cruisingSignups  CruisingSignup[]
+  eventSignups     EventSignup[]
   photoComments    PhotoComment[]
   photoLikes       PhotoLike[]
 }
@@ -71,11 +72,17 @@ model Event {
   lat         Float?
   lng         Float?
   imageUrl    String?
+  routeId     String?
+  route       CruisingRoute? @relation(fields: [routeId], references: [id], onDelete: SetNull)
   isPublished Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  albums Album[]
+  albums   Album[]
+  signups  EventSignup[]
+  messages EventMessage[]
+
+  @@index([routeId])
 }
 
 model Album {
@@ -157,6 +164,7 @@ model CruisingRoute {
 
   waypoints Waypoint[]
   events    CruisingEvent[]
+  linkedEvents Event[]
 }
 
 model CruisingEvent {
@@ -261,6 +269,34 @@ model SiteContent {
   body      String?  @db.Text
   imageUrl  String?
   updatedAt DateTime @updatedAt
+}
+
+model EventSignup {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+
+  messages EventMessage[]
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+}
+
+model EventMessage {
+  id        String      @id @default(cuid())
+  eventId   String
+  event     Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  signupId  String
+  signup    EventSignup @relation(fields: [signupId], references: [id], onDelete: Cascade)
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+
+  @@index([eventId, createdAt])
 }
 
 model PhotoComment {

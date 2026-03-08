@@ -10,6 +10,13 @@ export async function GET(
   const event = await prisma.event.findUnique({
     where: { id, isPublished: true },
     include: {
+      route: {
+        include: { waypoints: { orderBy: { sortOrder: "asc" } } },
+      },
+      signups: {
+        orderBy: { createdAt: "asc" },
+        select: { id: true, name: true, userId: true, createdAt: true },
+      },
       albums: {
         include: {
           photos: {
@@ -29,7 +36,7 @@ export async function GET(
     return NextResponse.json({ error: "Ikke funnet" }, { status: 404 });
   }
 
-  // Flatten all photos from all albums
+  // Flatten photos from all albums
   const photos = event.albums.flatMap((album) =>
     album.photos.map((p) => ({
       ...p,
