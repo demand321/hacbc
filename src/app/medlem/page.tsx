@@ -71,7 +71,13 @@ export default async function MemberDashboard() {
                   <div className="flex items-center gap-2">
                     <p className="text-lg font-semibold">{link.label}</p>
                     {link.value !== undefined && link.value > 0 && (
-                      <span className="rounded-full bg-hacbc-red/20 px-2 py-0.5 text-xs font-medium text-hacbc-red">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          link.highlight
+                            ? "bg-hacbc-red/20 text-hacbc-red"
+                            : "bg-muted text-foreground"
+                        }`}
+                      >
                         {link.value}
                       </span>
                     )}
