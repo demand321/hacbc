@@ -50,12 +50,45 @@ function createNumberedIcon(num: number) {
   });
 }
 
+interface PhotoMarker {
+  id: string;
+  url: string;
+  comment: string | null;
+  lat: number;
+  lng: number;
+}
+
+function createPhotoIcon() {
+  return L.divIcon({
+    className: "custom-marker",
+    html: `<div style="
+      background: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 2px solid var(--primary, #dc2626);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    ">📷</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
+  });
+}
+
 export default function CruisingMap({
   waypoints,
   onRouteInfo,
+  showMarkers = true,
+  photoMarkers = [],
 }: {
   waypoints: Waypoint[];
   onRouteInfo?: (info: { distance: string; duration: string }) => void;
+  showMarkers?: boolean;
+  photoMarkers?: PhotoMarker[];
 }) {
   const [roadRoute, setRoadRoute] = useState<[number, number][]>([]);
 
@@ -118,7 +151,7 @@ export default function CruisingMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {sortedWaypoints.map((wp, idx) => (
+      {showMarkers && sortedWaypoints.map((wp, idx) => (
         <Marker
           key={wp.id}
           position={[wp.lat, wp.lng]}
@@ -140,6 +173,20 @@ export default function CruisingMap({
           }}
         />
       )}
+      {photoMarkers.map((photo) => (
+        <Marker
+          key={photo.id}
+          position={[photo.lat, photo.lng]}
+          icon={createPhotoIcon()}
+        >
+          <Popup>
+            <div style={{ maxWidth: 200 }}>
+              <img src={photo.url} alt={photo.comment || "Bilde"} style={{ width: "100%", borderRadius: 4 }} />
+              {photo.comment && <p style={{ margin: "4px 0 0", fontSize: 12 }}>{photo.comment}</p>}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   );
 }

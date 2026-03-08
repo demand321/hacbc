@@ -38,6 +38,7 @@ model User {
   receivedMessages Message[] @relation("ReceivedMessages")
   orders           Order[]
   cruisingPhotos   CruisingPhoto[]
+  cruisingSignups  CruisingSignup[]
 }
 
 model Vehicle {
@@ -163,10 +164,40 @@ model CruisingEvent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  photos CruisingPhoto[]
+  photos   CruisingPhoto[]
+  signups  CruisingSignup[]
+  messages CruisingMessage[]
 
   @@index([routeId])
   @@index([date])
+}
+
+model CruisingSignup {
+  id        String        @id @default(cuid())
+  eventId   String
+  event     CruisingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  createdAt DateTime      @default(now())
+
+  messages CruisingMessage[]
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+}
+
+model CruisingMessage {
+  id        String        @id @default(cuid())
+  eventId   String
+  event     CruisingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  signupId  String
+  signup    CruisingSignup @relation(fields: [signupId], references: [id], onDelete: Cascade)
+  content   String        @db.Text
+  createdAt DateTime      @default(now())
+
+  @@index([eventId, createdAt])
 }
 
 model CruisingPhoto {
@@ -174,6 +205,8 @@ model CruisingPhoto {
   url          String
   storagePath  String
   comment      String?
+  lat          Float?
+  lng          Float?
   eventId      String
   event        CruisingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   uploadedById String

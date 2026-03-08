@@ -10,7 +10,19 @@
       "Bash(npx next:*)",
       "Bash(ls:*)",
       "Bash(npx tsx:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(gh repo:*)",
+      "Bash(where:*)",
+      "Bash(npm run:*)",
+      "Bash(vercel:*)",
+      "Read(//c/Users/daean/AppData/Roaming/com.vercel.cli/**)",
+      "Read(//c/Users/daean/.config/**)",
+      "Bash(VERCEL_CONFIG_DIR=~/AppData/Roaming/com.vercel.cli/Data vercel whoami:*)",
+      "Bash(__NEW_LINE_71b5b85ed585fa94__ vercel:*)",
+      "Bash(npx vercel:*)",
+      "WebFetch(domain:hacbc.no)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }

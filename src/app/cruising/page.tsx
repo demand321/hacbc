@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { MapPin, Clock, Ruler, Calendar, Camera } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,47 +115,48 @@ export default function CruisingPage() {
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {data.upcoming.map((event) => (
-                  <Card
-                    key={event.id}
-                    className="cursor-pointer border-border transition-colors hover:border-primary/50"
-                    onClick={() => {
-                      if (event.route && "waypoints" in event.route) {
-                        setSelectedRoute(event.route);
-                        setRouteInfo(null);
-                      }
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-12 w-12 flex-shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                          <span className="text-xs font-bold uppercase leading-none">
-                            {new Date(event.date).toLocaleDateString("nb-NO", { month: "short" })}
-                          </span>
-                          <span className="text-lg font-bold leading-none">
-                            {new Date(event.date).getDate()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{event.title}</h3>
-                          <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(event.date)}
-                          </p>
-                          {event.route && (
-                            <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              Rute: {"title" in event.route ? event.route.title : ""}
+                  <Link key={event.id} href={`/cruising/${event.id}`}>
+                    <Card
+                      className="cursor-pointer border-border transition-colors hover:border-primary/50"
+                      onClick={() => {
+                        if (event.route && "waypoints" in event.route) {
+                          setSelectedRoute(event.route);
+                          setRouteInfo(null);
+                        }
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-12 w-12 flex-shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                            <span className="text-xs font-bold uppercase leading-none">
+                              {new Date(event.date).toLocaleDateString("nb-NO", { month: "short" })}
+                            </span>
+                            <span className="text-lg font-bold leading-none">
+                              {new Date(event.date).getDate()}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{event.title}</h3>
+                            <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(event.date)}
                             </p>
-                          )}
-                          {event.description && (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {event.description}
-                            </p>
-                          )}
+                            {event.route && (
+                              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                Rute: {"title" in event.route ? event.route.title : ""}
+                              </p>
+                            )}
+                            {event.description && (
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                {event.description}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             </section>

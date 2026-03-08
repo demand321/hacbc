@@ -20,6 +20,7 @@ export async function GET() {
         route: {
           include: { waypoints: { orderBy: { sortOrder: "asc" } } },
         },
+        signups: { select: { id: true } },
       },
     });
 
@@ -38,9 +39,10 @@ export async function GET() {
     });
 
     return NextResponse.json({ routes, upcoming, past });
-  } catch {
+  } catch (err) {
+    console.error("Cruising API error:", err);
     return NextResponse.json(
-      { error: "Kunne ikke hente cruising-data" },
+      { error: "Kunne ikke hente cruising-data", detail: String(err) },
       { status: 500 }
     );
   }
