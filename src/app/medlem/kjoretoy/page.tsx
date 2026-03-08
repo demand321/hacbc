@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Car, Plus, Pencil, Trash2 } from "lucide-react";
+import { Car, Plus, Pencil, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DeleteVehicleButton } from "./DeleteVehicleButton";
@@ -70,7 +70,20 @@ export default async function MyVehiclesPage() {
                     {vehicle.description}
                   </p>
                 )}
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-3 flex items-center gap-2">
+                  {vehicle.published ? (
+                    <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500">
+                      <Eye className="h-3 w-3" />
+                      Offentlig
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                      <EyeOff className="h-3 w-3" />
+                      Skjult
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 flex items-center gap-2">
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/medlem/kjoretoy/${vehicle.id}/rediger`}>
                       <Pencil className="mr-1 h-3 w-3" />
@@ -79,9 +92,6 @@ export default async function MyVehiclesPage() {
                   </Button>
                   <DeleteVehicleButton vehicleId={vehicle.id} />
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {vehicle.published ? "Publisert" : "Ikke publisert"}
-                </p>
               </CardContent>
             </Card>
           ))}
