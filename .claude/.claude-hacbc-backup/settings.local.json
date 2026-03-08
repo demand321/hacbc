@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:hacbc.no)",
+      "WebFetch(domain:www.hacbc.no)",
+      "Bash(npx create-next-app@latest:*)"
+    ]
+  }
+}
