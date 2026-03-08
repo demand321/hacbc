@@ -69,6 +69,7 @@ async function main() {
       name: "HACBC Lue",
       description: "Varm lue med HACBC-logo. One size fits all.",
       price: 27500, // 275 NOK in øre
+      imageUrls: ["/images/shop/hacbc-lue.jpeg"],
       inStock: true,
       sortOrder: 1,
     },
@@ -76,6 +77,7 @@ async function main() {
       name: "HACBC Caps",
       description: "Klassisk caps med HACBC-logo.",
       price: 25000, // 250 NOK in øre
+      imageUrls: ["/images/shop/hacbc-caps.jpeg"],
       inStock: true,
       sortOrder: 2,
     },
