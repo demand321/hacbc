@@ -22,6 +22,7 @@ export default function NewVehiclePage() {
   const [description, setDescription] = useState("");
   const [specs, setSpecs] = useState<Spec[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [published, setPublished] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -91,6 +92,7 @@ export default function NewVehiclePage() {
           description: description || null,
           specs: Object.keys(specsObj).length > 0 ? specsObj : null,
           imageUrls,
+          published,
         }),
       });
 
@@ -232,6 +234,17 @@ export default function NewVehiclePage() {
                   />
                 </label>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                id="published"
+                type="checkbox"
+                checked={published}
+                onChange={(e) => setPublished(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="published">Vis offentlig i kjøretøygalleriet</Label>
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}

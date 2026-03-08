@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { make, model, year, description, specs, imageUrls } = body;
+  const { make, model, year, description, specs, imageUrls, published } = body;
 
   if (!make || !model) {
     return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       specs: specs || undefined,
       imageUrls: imageUrls || [],
       ownerId: session.user.id,
-      published: true,
+      published: published ?? true,
     },
   });
 
@@ -66,7 +66,7 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { id, make, model, year, description, specs, imageUrls } = body;
+  const { id, make, model, year, description, specs, imageUrls, published } = body;
 
   if (!id) {
     return NextResponse.json({ error: "ID mangler" }, { status: 400 });
@@ -95,6 +95,7 @@ export async function PATCH(request: Request) {
       description: description?.trim() || null,
       specs: specs || undefined,
       imageUrls: imageUrls || [],
+      published: published ?? undefined,
     },
   });
 

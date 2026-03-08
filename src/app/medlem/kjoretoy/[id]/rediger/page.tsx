@@ -28,6 +28,7 @@ export default function EditVehiclePage() {
   const [description, setDescription] = useState("");
   const [specs, setSpecs] = useState<SpecEntry[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [published, setPublished] = useState(true);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function EditVehiclePage() {
       setYear(vehicle.year?.toString() ?? "");
       setDescription(vehicle.description ?? "");
       setImageUrls(vehicle.imageUrls ?? []);
+      setPublished(vehicle.published ?? true);
       if (vehicle.specs && typeof vehicle.specs === "object") {
         setSpecs(
           Object.entries(vehicle.specs).map(([key, value]) => ({
@@ -113,6 +115,7 @@ export default function EditVehiclePage() {
         description: description || null,
         specs: Object.keys(specsObj).length > 0 ? specsObj : null,
         imageUrls,
+        published,
       }),
     });
 
@@ -271,6 +274,17 @@ export default function EditVehiclePage() {
               />
             </label>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            id="published"
+            type="checkbox"
+            checked={published}
+            onChange={(e) => setPublished(e.target.checked)}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="published">Vis offentlig i kjøretøygalleriet</Label>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
