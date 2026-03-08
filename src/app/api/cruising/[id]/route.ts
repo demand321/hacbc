@@ -20,7 +20,11 @@ export async function GET(
         },
         photos: {
           orderBy: { createdAt: "asc" },
-          include: { uploadedBy: { select: { name: true } } },
+          include: {
+            uploadedBy: { select: { name: true } },
+            likes: { select: { id: true, authorName: true, userId: true } },
+            comments: { orderBy: { createdAt: "asc" } },
+          },
         },
       },
     });
@@ -30,7 +34,8 @@ export async function GET(
     }
 
     return NextResponse.json(event);
-  } catch {
-    return NextResponse.json({ error: "Serverfeil" }, { status: 500 });
+  } catch (err) {
+    console.error("Cruising detail error:", err);
+    return NextResponse.json({ error: "Serverfeil", detail: String(err) }, { status: 500 });
   }
 }

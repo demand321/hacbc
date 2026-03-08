@@ -8,12 +8,48 @@ export async function GET(
   const { albumId } = await params;
 
   try {
+    // Cruising event photos
+    if (albumId.startsWith("cruising-")) {
+      const eventId = albumId.replace("cruising-", "");
+      const event = await prisma.cruisingEvent.findUnique({
+        where: { id: eventId },
+        include: {
+          photos: {
+            orderBy: { createdAt: "asc" },
+            include: {
+              uploadedBy: { select: { name: true } },
+              likes: { select: { id: true, authorName: true, userId: true } },
+              comments: { orderBy: { createdAt: "asc" } },
+            },
+          },
+        },
+      });
+
+      if (!event) {
+        return NextResponse.json({ error: "Album ikke funnet" }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        id: albumId,
+        title: `Cruising: ${event.title}`,
+        photos: event.photos.map((p) => ({
+          ...p,
+          caption: p.comment,
+        })),
+      });
+    }
+
+    // Regular album
     const album = await prisma.album.findUnique({
       where: { id: albumId },
       include: {
         photos: {
           orderBy: { createdAt: "asc" },
-          select: { id: true, url: true, caption: true },
+          include: {
+            uploadedBy: { select: { name: true } },
+            likes: { select: { id: true, authorName: true, userId: true } },
+            comments: { orderBy: { createdAt: "asc" } },
+          },
         },
       },
     });

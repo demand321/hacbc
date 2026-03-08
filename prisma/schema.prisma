@@ -39,6 +39,8 @@ model User {
   orders           Order[]
   cruisingPhotos   CruisingPhoto[]
   cruisingSignups  CruisingSignup[]
+  photoComments    PhotoComment[]
+  photoLikes       PhotoLike[]
 }
 
 model Vehicle {
@@ -98,6 +100,9 @@ model Photo {
   uploadedById String
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])
   createdAt    DateTime @default(now())
+
+  comments PhotoComment[] @relation("GalleryPhotoComments")
+  likes    PhotoLike[]    @relation("GalleryPhotoLikes")
 
   @@index([albumId])
   @@index([uploadedById])
@@ -201,17 +206,21 @@ model CruisingMessage {
 }
 
 model CruisingPhoto {
-  id           String        @id @default(cuid())
-  url          String
-  storagePath  String
-  comment      String?
-  lat          Float?
-  lng          Float?
-  eventId      String
-  event        CruisingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  uploadedById String
-  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
-  createdAt    DateTime      @default(now())
+  id             String          @id @default(cuid())
+  url            String
+  storagePath    String
+  comment        String?
+  lat            Float?
+  lng            Float?
+  uploaderName   String?
+  eventId        String
+  event          CruisingEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploadedById   String?
+  uploadedBy     User?           @relation(fields: [uploadedById], references: [id])
+  createdAt      DateTime        @default(now())
+
+  comments PhotoComment[] @relation("CruisingPhotoComments")
+  likes    PhotoLike[]    @relation("CruisingPhotoLikes")
 
   @@index([eventId])
   @@index([uploadedById])
@@ -252,4 +261,37 @@ model SiteContent {
   body      String?  @db.Text
   imageUrl  String?
   updatedAt DateTime @updatedAt
+}
+
+model PhotoComment {
+  id              String         @id @default(cuid())
+  content         String         @db.Text
+  authorName      String
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleryPhotoId  String?
+  galleryPhoto    Photo?         @relation("GalleryPhotoComments", fields: [galleryPhotoId], references: [id], onDelete: Cascade)
+  cruisingPhotoId String?
+  cruisingPhoto   CruisingPhoto? @relation("CruisingPhotoComments", fields: [cruisingPhotoId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+
+  @@index([galleryPhotoId])
+  @@index([cruisingPhotoId])
+}
+
+model PhotoLike {
+  id              String         @id @default(cuid())
+  authorName      String
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleryPhotoId  String?
+  galleryPhoto    Photo?         @relation("GalleryPhotoLikes", fields: [galleryPhotoId], references: [id], onDelete: Cascade)
+  cruisingPhotoId String?
+  cruisingPhoto   CruisingPhoto? @relation("CruisingPhotoLikes", fields: [cruisingPhotoId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+
+  @@unique([userId, galleryPhotoId])
+  @@unique([userId, cruisingPhotoId])
+  @@index([galleryPhotoId])
+  @@index([cruisingPhotoId])
 }

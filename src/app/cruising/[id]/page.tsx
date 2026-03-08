@@ -17,11 +17,14 @@ import {
   Camera,
   ChevronDown,
   ChevronUp,
+  Heart,
+  ImagePlus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PhotoLightbox from "@/components/PhotoLightbox";
 
 interface Waypoint {
   id: string;
@@ -54,13 +57,29 @@ interface ChatMessage {
   signup: { name: string };
 }
 
+interface PhotoComment {
+  id: string;
+  content: string;
+  authorName: string;
+  createdAt: string;
+}
+
+interface PhotoLike {
+  id: string;
+  authorName: string;
+  userId: string | null;
+}
+
 interface CruisingPhoto {
   id: string;
   url: string;
   comment: string | null;
   lat?: number | null;
   lng?: number | null;
-  uploadedBy: { name: string };
+  uploaderName?: string | null;
+  uploadedBy?: { name: string } | null;
+  likes: PhotoLike[];
+  comments: PhotoComment[];
 }
 
 interface CruisingEventDetail {
@@ -109,7 +128,7 @@ export default function CruisingDetailPage() {
     duration: string;
   } | null>(null);
   const [showStops, setShowStops] = useState(false);
-  const [lightboxPhoto, setLightboxPhoto] = useState<CruisingPhoto | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
   // Signup state
   const [signupName, setSignupName] = useState("");
@@ -117,6 +136,11 @@ export default function CruisingDetailPage() {
   const [signupError, setSignupError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [mySignupId, setMySignupId] = useState<string | null>(null);
+
+  // Photo upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadComment, setUploadComment] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -232,6 +256,39 @@ export default function CruisingDetailPage() {
       );
     } catch (err: unknown) {
       setSignupError(err instanceof Error ? err.message : "Noe gikk galt");
+    }
+  };
+
+  const handleUploadPhoto = async (file: File) => {
+    if (!signupSuccess) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      if (mySignupId) form.append("signupId", mySignupId);
+      if (uploadComment.trim()) form.append("comment", uploadComment.trim());
+
+      const res = await fetch(`/api/cruising/${id}/photos`, {
+        method: "POST",
+        body: form,
+      });
+      if (res.ok) {
+        const photo = await res.json();
+        photo.likes = photo.likes || [];
+        photo.comments = photo.comments || [];
+        setEvent((prev) =>
+          prev ? { ...prev, photos: [...prev.photos, photo] } : prev
+        );
+        setUploadComment("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Opplasting feilet");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -386,43 +443,98 @@ export default function CruisingDetailPage() {
         </div>
       )}
 
-      {/* Photo gallery */}
-      {event.photos && event.photos.length > 0 && (
+      {/* Photo gallery + upload */}
+      {(event.photos.length > 0 || signupSuccess) && (
         <div className="mb-8">
           <h2 className="mb-4 flex items-center gap-2 font-[family-name:var(--font-heading)] text-xl font-bold uppercase">
             <Camera className="h-5 w-5 text-primary" />
             Bilder
-            <span className="text-base font-normal text-muted-foreground">
-              ({event.photos.length})
-            </span>
+            {event.photos.length > 0 && (
+              <span className="text-base font-normal text-muted-foreground">
+                ({event.photos.length})
+              </span>
+            )}
           </h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-            {event.photos.map((photo) => (
-              <div
-                key={photo.id}
-                className="group cursor-pointer"
-                onClick={() => setLightboxPhoto(photo)}
-              >
-                <div className="relative overflow-hidden rounded-lg border border-border">
-                  <img
-                    src={photo.url}
-                    alt={photo.comment || "Cruising-bilde"}
-                    className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+
+          {/* Upload area for participants */}
+          {signupSuccess && (
+            <div className="mb-4 rounded-lg border border-dashed border-border p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1">
+                  <Label htmlFor="photo-comment" className="mb-1 text-sm">Kommentar (valgfritt)</Label>
+                  <Input
+                    id="photo-comment"
+                    value={uploadComment}
+                    onChange={(e) => setUploadComment(e.target.value)}
+                    placeholder="Beskriv bildet..."
                   />
-                  {photo.lat != null && photo.lng != null && (
-                    <div className="absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5">
-                      <MapPin className="h-3 w-3 text-white" />
-                    </div>
-                  )}
                 </div>
-                {photo.comment && (
-                  <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-                    {photo.comment}
-                  </p>
-                )}
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadPhoto(file);
+                    }}
+                  />
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    variant="outline"
+                  >
+                    <ImagePlus className="mr-2 h-4 w-4" />
+                    {uploading ? "Laster opp..." : "Last opp bilde"}
+                  </Button>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {event.photos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+              {event.photos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="group cursor-pointer"
+                  onClick={() => setSelectedPhotoIndex(event.photos.indexOf(photo))}
+                >
+                  <div className="relative overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={photo.url}
+                      alt={photo.comment || "Cruising-bilde"}
+                      className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute bottom-1 left-1 flex gap-1.5">
+                      {photo.likes.length > 0 && (
+                        <span className="flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">
+                          <Heart className="h-3 w-3 fill-red-500 text-red-500" />
+                          {photo.likes.length}
+                        </span>
+                      )}
+                      {photo.comments.length > 0 && (
+                        <span className="flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">
+                          <MessageCircle className="h-3 w-3" />
+                          {photo.comments.length}
+                        </span>
+                      )}
+                    </div>
+                    {photo.lat != null && photo.lng != null && (
+                      <div className="absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5">
+                        <MapPin className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : signupSuccess ? (
+            <p className="text-sm text-muted-foreground">
+              Ingen bilder ennå. Vær den første til å dele!
+            </p>
+          ) : null}
         </div>
       )}
 
@@ -628,40 +740,18 @@ export default function CruisingDetailPage() {
         </Card>
       </div>
 
-      {/* Lightbox */}
-      {lightboxPhoto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setLightboxPhoto(null)}
-        >
-          <div
-            className="relative max-h-[90vh] max-w-4xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={lightboxPhoto.url}
-              alt={lightboxPhoto.comment || "Cruising-bilde"}
-              className="max-h-[85vh] rounded-lg object-contain"
-            />
-            {(lightboxPhoto.comment || lightboxPhoto.uploadedBy) && (
-              <div className="mt-2 rounded-md bg-black/60 px-3 py-2">
-                {lightboxPhoto.comment && (
-                  <p className="text-sm text-white">{lightboxPhoto.comment}</p>
-                )}
-                <p className="text-xs text-white/60">
-                  av {lightboxPhoto.uploadedBy.name}
-                </p>
-              </div>
-            )}
-            <button
-              onClick={() => setLightboxPhoto(null)}
-              className="absolute -right-2 -top-2 rounded-full bg-black/70 px-2 py-1 text-sm text-white hover:bg-black"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
+      <PhotoLightbox
+        photos={event.photos}
+        selectedIndex={selectedPhotoIndex}
+        onClose={() => setSelectedPhotoIndex(null)}
+        onNavigate={setSelectedPhotoIndex}
+        photoType="cruising"
+        currentUserName={session?.user?.name || null}
+        currentUserId={session?.user?.id || null}
+        onPhotosChange={(updated) =>
+          setEvent((prev) => (prev ? { ...prev, photos: updated as CruisingPhoto[] } : prev))
+        }
+      />
     </div>
   );
 }
