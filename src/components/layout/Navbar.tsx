@@ -7,6 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Menu, X, User, LogOut, Shield } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
 
 const publicLinks = [
   { href: "/kjoretoy", label: "Kjøretøy" },
@@ -35,7 +36,7 @@ export function Navbar() {
   const isAdmin = session?.user?.role === "ADMIN";
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-[#0d0d0d]/95 backdrop-blur-md">
+    <nav className="nav-bar sticky top-0 z-50 border-b border-border bg-[var(--nav-bg)] backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -48,7 +49,7 @@ export function Navbar() {
               className="rounded"
             />
             <span className="hidden text-lg font-bold tracking-tight sm:block">
-              <span className="text-hacbc-red">HACBC</span>
+              <span className="text-primary">HACBC</span>
             </span>
           </Link>
 
@@ -60,7 +61,7 @@ export function Navbar() {
                 href={link.href}
                 className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive(link.href)
-                    ? "bg-hacbc-red/10 text-hacbc-red"
+                    ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -77,7 +78,7 @@ export function Navbar() {
                     href={link.href}
                     className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                       isActive(link.href)
-                        ? "bg-hacbc-red/10 text-hacbc-red"
+                        ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -90,6 +91,7 @@ export function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            <ThemeSwitcher />
             {session ? (
               <div className="relative">
                 <Button
@@ -125,7 +127,7 @@ export function Navbar() {
                         <>
                           <div className="my-1 h-px bg-border" />
                           <button
-                            className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-hacbc-red hover:bg-accent"
+                            className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-primary hover:bg-accent"
                             onClick={() => {
                               router.push("/admin");
                               setMenuOpen(false);
@@ -181,7 +183,7 @@ export function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className={`rounded-md px-3 py-2 text-sm font-medium ${
                     isActive(link.href)
-                      ? "bg-hacbc-red/10 text-hacbc-red"
+                      ? "bg-primary/10 text-primary"
                       : "text-muted-foreground"
                   }`}
                 >
@@ -198,7 +200,7 @@ export function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className={`rounded-md px-3 py-2 text-sm font-medium ${
                         isActive(link.href)
-                          ? "bg-hacbc-red/10 text-hacbc-red"
+                          ? "bg-primary/10 text-primary"
                           : "text-muted-foreground"
                       }`}
                     >
@@ -211,7 +213,7 @@ export function Navbar() {
                 <Link
                   href="/admin"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-hacbc-red"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-primary"
                 >
                   Admin
                 </Link>

@@ -1,18 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash2, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 
-interface Waypoint {
+const RouteEditor = dynamic(() => import("./RouteEditor"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[450px] items-center justify-center rounded-lg bg-muted">
+      <div className="text-muted-foreground">Laster kart...</div>
+    </div>
+  ),
+});
+
+interface WaypointData {
   id?: string;
   name: string;
-  lat: string;
-  lng: string;
+  lat: number;
+  lng: number;
   note: string;
 }
 
@@ -21,15 +31,8 @@ interface RouteData {
   title: string;
   description: string;
   isActive: boolean;
-  waypoints: Waypoint[];
+  waypoints: WaypointData[];
 }
-
-const emptyWaypoint = (): Waypoint => ({
-  name: "",
-  lat: "",
-  lng: "",
-  note: "",
-});
 
 export default function AdminCruisingPage() {
   const [routes, setRoutes] = useState<RouteData[]>([]);
@@ -51,8 +54,8 @@ export default function AdminCruisingPage() {
             waypoints: r.waypoints.map((w: any) => ({
               id: w.id,
               name: w.name,
-              lat: String(w.lat),
-              lng: String(w.lng),
+              lat: w.lat,
+              lng: w.lng,
               note: w.note ?? "",
             })),
           }))
@@ -69,7 +72,7 @@ export default function AdminCruisingPage() {
       title: "",
       description: "",
       isActive: true,
-      waypoints: [emptyWaypoint()],
+      waypoints: [],
     };
     setRoutes((prev) => [...prev, newRoute]);
     setActiveRouteIndex(routes.length);
@@ -81,11 +84,22 @@ export default function AdminCruisingPage() {
     );
   }
 
-  function addWaypoint(routeIndex: number) {
+  function updateWaypoints(routeIndex: number, waypoints: WaypointData[]) {
+    setRoutes((prev) =>
+      prev.map((r, i) => (i === routeIndex ? { ...r, waypoints } : r))
+    );
+  }
+
+  function updateWaypoint(routeIndex: number, wpIndex: number, field: string, value: string) {
     setRoutes((prev) =>
       prev.map((r, i) =>
         i === routeIndex
-          ? { ...r, waypoints: [...r.waypoints, emptyWaypoint()] }
+          ? {
+              ...r,
+              waypoints: r.waypoints.map((w, wi) =>
+                wi === wpIndex ? { ...w, [field]: value } : w
+              ),
+            }
           : r
       )
     );
@@ -96,26 +110,6 @@ export default function AdminCruisingPage() {
       prev.map((r, i) =>
         i === routeIndex
           ? { ...r, waypoints: r.waypoints.filter((_, wi) => wi !== wpIndex) }
-          : r
-      )
-    );
-  }
-
-  function updateWaypoint(
-    routeIndex: number,
-    wpIndex: number,
-    field: string,
-    value: string
-  ) {
-    setRoutes((prev) =>
-      prev.map((r, i) =>
-        i === routeIndex
-          ? {
-              ...r,
-              waypoints: r.waypoints.map((w, wi) =>
-                wi === wpIndex ? { ...w, [field]: value } : w
-              ),
-            }
           : r
       )
     );
@@ -148,9 +142,9 @@ export default function AdminCruisingPage() {
       description: route.description || null,
       isActive: route.isActive,
       waypoints: route.waypoints.map((w, i) => ({
-        name: w.name,
-        lat: parseFloat(w.lat),
-        lng: parseFloat(w.lng),
+        name: w.name || `Punkt ${i + 1}`,
+        lat: w.lat,
+        lng: w.lng,
         note: w.note || null,
         sortOrder: i,
       })),
@@ -173,8 +167,8 @@ export default function AdminCruisingPage() {
                 waypoints: saved.waypoints.map((w: any) => ({
                   id: w.id,
                   name: w.name,
-                  lat: String(w.lat),
-                  lng: String(w.lng),
+                  lat: w.lat,
+                  lng: w.lng,
                   note: w.note ?? "",
                 })),
               }
@@ -216,7 +210,7 @@ export default function AdminCruisingPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Cruising-ruter</h2>
-        <Button onClick={addRoute} className="bg-hacbc-red hover:bg-hacbc-red/80">
+        <Button onClick={addRoute}>
           <Plus className="mr-2 h-4 w-4" />
           Ny rute
         </Button>
@@ -231,7 +225,6 @@ export default function AdminCruisingPage() {
               variant={activeRouteIndex === i ? "default" : "outline"}
               size="sm"
               onClick={() => setActiveRouteIndex(i)}
-              className={activeRouteIndex === i ? "bg-hacbc-red hover:bg-hacbc-red/80" : ""}
             >
               {r.title || `Ny rute ${i + 1}`}
             </Button>
@@ -240,146 +233,152 @@ export default function AdminCruisingPage() {
       )}
 
       {route && activeRouteIndex !== null && (
-        <div className="max-w-3xl space-y-6">
+        <div className="space-y-6">
           {/* Route details */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="routeTitle">Tittel *</Label>
-              <Input
-                id="routeTitle"
-                value={route.title}
-                onChange={(e) => updateRoute(activeRouteIndex, "title", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="routeDesc">Beskrivelse</Label>
-              <Textarea
-                id="routeDesc"
-                rows={3}
-                value={route.description}
-                onChange={(e) =>
-                  updateRoute(activeRouteIndex, "description", e.target.value)
-                }
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="isActive"
-                type="checkbox"
-                checked={route.isActive}
-                onChange={(e) =>
-                  updateRoute(activeRouteIndex, "isActive", e.target.checked)
-                }
-                className="h-4 w-4 accent-hacbc-red"
-              />
-              <Label htmlFor="isActive">Aktiv</Label>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="routeTitle">Tittel *</Label>
+                <Input
+                  id="routeTitle"
+                  value={route.title}
+                  onChange={(e) =>
+                    updateRoute(activeRouteIndex, "title", e.target.value)
+                  }
+                  placeholder="F.eks. Onsdags-cruising Hamar"
+                />
+              </div>
+              <div>
+                <Label htmlFor="routeDesc">Beskrivelse</Label>
+                <Textarea
+                  id="routeDesc"
+                  rows={3}
+                  value={route.description}
+                  onChange={(e) =>
+                    updateRoute(activeRouteIndex, "description", e.target.value)
+                  }
+                  placeholder="Beskrivelse av ruten..."
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  id="isActive"
+                  type="checkbox"
+                  checked={route.isActive}
+                  onChange={(e) =>
+                    updateRoute(activeRouteIndex, "isActive", e.target.checked)
+                  }
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="isActive">Aktiv (vises offentlig)</Label>
+              </div>
             </div>
           </div>
 
-          {/* Waypoints */}
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Veipunkter ({route.waypoints.length})
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => addWaypoint(activeRouteIndex)}
-              >
-                <Plus className="mr-1 h-3 w-3" />
-                Legg til
-              </Button>
-            </div>
+          {/* Map editor */}
+          <RouteEditor
+            waypoints={route.waypoints}
+            onChange={(wps) => updateWaypoints(activeRouteIndex, wps)}
+          />
 
-            <div className="space-y-3">
-              {route.waypoints.map((wp, wpIndex) => (
-                <Card key={wpIndex} className="border-border">
-                  <CardContent className="p-3">
-                    <div className="flex items-start gap-2">
-                      <div className="flex flex-col gap-1 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => moveWaypoint(activeRouteIndex, wpIndex, -1)}
-                          disabled={wpIndex === 0}
-                          className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        >
-                          <ArrowUp className="h-3 w-3" />
-                        </button>
-                        <GripVertical className="h-3 w-3 text-muted-foreground" />
-                        <button
-                          type="button"
-                          onClick={() => moveWaypoint(activeRouteIndex, wpIndex, 1)}
-                          disabled={wpIndex === route.waypoints.length - 1}
-                          className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        >
-                          <ArrowDown className="h-3 w-3" />
-                        </button>
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="grid gap-2 sm:grid-cols-3">
+          {/* Waypoint list */}
+          {route.waypoints.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                Stoppesteder ({route.waypoints.length}) - gi dem navn og
+                notater
+              </h3>
+              <div className="space-y-2">
+                {route.waypoints.map((wp, wpIndex) => (
+                  <Card key={wpIndex} className="border-border">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              moveWaypoint(activeRouteIndex, wpIndex, -1)
+                            }
+                            disabled={wpIndex === 0}
+                            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              moveWaypoint(activeRouteIndex, wpIndex, 1)
+                            }
+                            disabled={wpIndex === route.waypoints.length - 1}
+                            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                          {wpIndex + 1}
+                        </div>
+                        <div className="grid flex-1 gap-2 sm:grid-cols-3">
                           <Input
-                            placeholder="Navn"
+                            placeholder="Navn på stopp"
                             value={wp.name}
                             onChange={(e) =>
-                              updateWaypoint(activeRouteIndex, wpIndex, "name", e.target.value)
+                              updateWaypoint(
+                                activeRouteIndex,
+                                wpIndex,
+                                "name",
+                                e.target.value
+                              )
                             }
+                            className="h-8 text-sm"
                           />
                           <Input
-                            placeholder="Breddegrad (lat)"
-                            type="number"
-                            step="any"
-                            value={wp.lat}
+                            placeholder="Notat"
+                            value={wp.note}
                             onChange={(e) =>
-                              updateWaypoint(activeRouteIndex, wpIndex, "lat", e.target.value)
+                              updateWaypoint(
+                                activeRouteIndex,
+                                wpIndex,
+                                "note",
+                                e.target.value
+                              )
                             }
+                            className="h-8 text-sm"
                           />
-                          <Input
-                            placeholder="Lengdegrad (lng)"
-                            type="number"
-                            step="any"
-                            value={wp.lng}
-                            onChange={(e) =>
-                              updateWaypoint(activeRouteIndex, wpIndex, "lng", e.target.value)
-                            }
-                          />
+                          <span className="flex items-center text-xs text-muted-foreground">
+                            {wp.lat.toFixed(4)}, {wp.lng.toFixed(4)}
+                          </span>
                         </div>
-                        <Input
-                          placeholder="Notat (valgfritt)"
-                          value={wp.note}
-                          onChange={(e) =>
-                            updateWaypoint(activeRouteIndex, wpIndex, "note", e.target.value)
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            removeWaypoint(activeRouteIndex, wpIndex)
                           }
-                        />
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeWaypoint(activeRouteIndex, wpIndex)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button
               onClick={() => handleSave(activeRouteIndex)}
               disabled={saving}
-              className="bg-hacbc-red hover:bg-hacbc-red/80"
             >
               {saving ? "Lagrer..." : "Lagre rute"}
             </Button>
             <Button
               variant="outline"
               onClick={() => handleDelete(activeRouteIndex)}
-              className="text-red-400 hover:text-red-300"
+              className="text-destructive hover:text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Slett rute
@@ -390,7 +389,8 @@ export default function AdminCruisingPage() {
 
       {routes.length === 0 && (
         <p className="text-muted-foreground">
-          Ingen ruter opprettet ennå. Klikk &quot;Ny rute&quot; for å komme i gang.
+          Ingen ruter opprettet ennå. Klikk &quot;Ny rute&quot; for å komme i
+          gang.
         </p>
       )}
     </div>

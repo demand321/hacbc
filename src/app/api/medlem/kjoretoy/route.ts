@@ -3,10 +3,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
+  }
+
+  // If ?id= is provided, return single vehicle (for edit page)
+  const id = request.nextUrl.searchParams.get("id");
+  if (id) {
+    const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+    if (!vehicle || vehicle.ownerId !== session.user.id) {
+      return NextResponse.json({ error: "Ikke funnet" }, { status: 404 });
+    }
+    return NextResponse.json(vehicle);
   }
 
   const vehicles = await prisma.vehicle.findMany({
@@ -42,10 +52,53 @@ export async function POST(request: Request) {
       specs: specs || undefined,
       imageUrls: imageUrls || [],
       ownerId: session.user.id,
+      published: true,
     },
   });
 
   return NextResponse.json(vehicle, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { id, make, model, year, description, specs, imageUrls } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "ID mangler" }, { status: 400 });
+  }
+
+  // Verify ownership
+  const existing = await prisma.vehicle.findUnique({
+    where: { id },
+    select: { ownerId: true },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Ikke funnet" }, { status: 404 });
+  }
+
+  if (existing.ownerId !== session.user.id) {
+    return NextResponse.json({ error: "Ikke autorisert" }, { status: 403 });
+  }
+
+  const vehicle = await prisma.vehicle.update({
+    where: { id },
+    data: {
+      make: make?.trim(),
+      model: model?.trim(),
+      year: year ? parseInt(year) : null,
+      description: description?.trim() || null,
+      specs: specs || undefined,
+      imageUrls: imageUrls || [],
+    },
+  });
+
+  return NextResponse.json(vehicle);
 }
 
 export async function DELETE(request: NextRequest) {
@@ -59,7 +112,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "ID mangler" }, { status: 400 });
   }
 
-  // Verify ownership
   const vehicle = await prisma.vehicle.findUnique({
     where: { id },
     select: { ownerId: true },

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { MapPin } from "lucide-react";
+import { MapPin, Clock, Ruler } from "lucide-react";
 
 interface Waypoint {
   id: string;
@@ -32,6 +32,7 @@ const CruisingMap = dynamic(() => import("./CruisingMap"), {
 export default function CruisingPage() {
   const [route, setRoute] = useState<CruisingRoute | null>(null);
   const [loading, setLoading] = useState(true);
+  const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/cruising")
@@ -47,10 +48,11 @@ export default function CruisingPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
       <h1 className="font-[family-name:var(--font-heading)] text-4xl font-bold uppercase tracking-tight sm:text-5xl">
-        Cruising<span className="text-hacbc-red">rute</span>
+        Cruising<span className="text-primary">rute</span>
       </h1>
       <p className="mt-4 text-muted-foreground">
-        Onsdags-cruising i Hamar-regionen.
+        Onsdags-cruising i Hamar-regionen. Ruten følger veier og vises på
+        kartet nedenfor.
       </p>
 
       {loading ? (
@@ -68,10 +70,25 @@ export default function CruisingPage() {
                 {route.description}
               </p>
             )}
+            {routeInfo && (
+              <div className="mt-3 flex flex-wrap gap-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Ruler className="h-4 w-4 text-primary" />
+                  <span>{routeInfo.distance}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span>ca. {routeInfo.duration} kjøretid</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="overflow-hidden rounded-xl border border-border">
-            <CruisingMap waypoints={route.waypoints} />
+            <CruisingMap
+              waypoints={route.waypoints}
+              onRouteInfo={setRouteInfo}
+            />
           </div>
 
           {route.waypoints.length > 0 && (
@@ -85,7 +102,7 @@ export default function CruisingPage() {
                       key={wp.id}
                       className="flex items-start gap-3 rounded-lg border border-border bg-card p-3"
                     >
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-hacbc-red text-sm font-bold text-white">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                         {idx + 1}
                       </div>
                       <div>

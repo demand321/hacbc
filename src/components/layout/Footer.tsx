@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-[#0d0d0d]">
+    <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid gap-8 sm:grid-cols-3">
           <div>
-            <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-hacbc-red">
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-primary">
               HACBC
             </h3>
             <p className="text-sm text-muted-foreground">
@@ -57,7 +57,7 @@ export function Footer() {
             </p>
             <Link
               href="/registrer"
-              className="mt-2 inline-block text-sm font-medium text-hacbc-red hover:underline"
+              className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
               Registrer deg her
             </Link>

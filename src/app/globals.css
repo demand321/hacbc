@@ -46,44 +46,155 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --color-hacbc-red: #dc2626;
-  --color-hacbc-red-dark: #991b1b;
-  --color-hacbc-chrome: #d4d4d8;
+  --color-hacbc-red: var(--accent-color);
+  --color-hacbc-red-dark: var(--accent-color-dark);
+  --color-hacbc-chrome: var(--chrome-color);
+  --color-hacbc-secondary: var(--accent-secondary);
 }
 
-:root {
+/* ============================================
+   THEME 1: GARAGE - Mørk & Rå
+   ============================================ */
+:root,
+[data-theme="garage"] {
   --background: #0a0a0a;
   --foreground: #f5f5f4;
-  --card: #171717;
+  --card: #141414;
   --card-foreground: #f5f5f4;
-  --popover: #171717;
+  --popover: #141414;
   --popover-foreground: #f5f5f4;
   --primary: #dc2626;
   --primary-foreground: #ffffff;
-  --secondary: #262626;
+  --secondary: #1e1e1e;
   --secondary-foreground: #f5f5f4;
-  --muted: #1c1c1c;
+  --muted: #1a1a1a;
   --muted-foreground: #a1a1aa;
-  --accent: #292929;
+  --accent: #252525;
   --accent-foreground: #f5f5f4;
   --destructive: #dc2626;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.1);
   --ring: #dc2626;
   --chart-1: #dc2626;
   --chart-2: #f59e0b;
   --chart-3: #3b82f6;
   --chart-4: #10b981;
   --chart-5: #8b5cf6;
-  --radius: 0.5rem;
-  --sidebar: #171717;
+  --radius: 0.375rem;
+  --sidebar: #141414;
   --sidebar-foreground: #f5f5f4;
   --sidebar-primary: #dc2626;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #262626;
+  --sidebar-accent: #1e1e1e;
   --sidebar-accent-foreground: #f5f5f4;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #dc2626;
+
+  /* Theme-specific */
+  --accent-color: #dc2626;
+  --accent-color-dark: #991b1b;
+  --accent-secondary: #dc2626;
+  --chrome-color: #71717a;
+  --nav-bg: rgba(10, 10, 10, 0.95);
+  --hero-gradient: linear-gradient(180deg, rgba(220, 38, 38, 0.06) 0%, transparent 60%);
+  --card-hover-border: rgba(220, 38, 38, 0.3);
+  --heading-weight: 800;
+}
+
+/* ============================================
+   THEME 2: ROUTE 66 - Retro Americana
+   ============================================ */
+[data-theme="route66"] {
+  --background: #0c1222;
+  --foreground: #faf5ee;
+  --card: #131d33;
+  --card-foreground: #faf5ee;
+  --popover: #131d33;
+  --popover-foreground: #faf5ee;
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --secondary: #1a2740;
+  --secondary-foreground: #faf5ee;
+  --muted: #162035;
+  --muted-foreground: #94a3b8;
+  --accent: #1e2d4a;
+  --accent-foreground: #faf5ee;
+  --destructive: #ef4444;
+  --border: rgba(250, 245, 238, 0.08);
+  --input: rgba(250, 245, 238, 0.1);
+  --ring: #ea580c;
+  --chart-1: #ea580c;
+  --chart-2: #0891b2;
+  --chart-3: #f59e0b;
+  --chart-4: #10b981;
+  --chart-5: #8b5cf6;
+  --radius: 0.75rem;
+  --sidebar: #131d33;
+  --sidebar-foreground: #faf5ee;
+  --sidebar-primary: #ea580c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a2740;
+  --sidebar-accent-foreground: #faf5ee;
+  --sidebar-border: rgba(250, 245, 238, 0.08);
+  --sidebar-ring: #ea580c;
+
+  /* Theme-specific */
+  --accent-color: #ea580c;
+  --accent-color-dark: #9a3412;
+  --accent-secondary: #0891b2;
+  --chrome-color: #94a3b8;
+  --nav-bg: rgba(12, 18, 34, 0.95);
+  --hero-gradient: linear-gradient(180deg, rgba(234, 88, 12, 0.08) 0%, rgba(8, 145, 178, 0.04) 50%, transparent 100%);
+  --card-hover-border: rgba(234, 88, 12, 0.3);
+  --heading-weight: 700;
+}
+
+/* ============================================
+   THEME 3: CHROME - Premium & Polert
+   ============================================ */
+[data-theme="chrome"] {
+  --background: #050505;
+  --foreground: #fafafa;
+  --card: #0e0e0e;
+  --card-foreground: #fafafa;
+  --popover: #0e0e0e;
+  --popover-foreground: #fafafa;
+  --primary: #d4af37;
+  --primary-foreground: #050505;
+  --secondary: #161616;
+  --secondary-foreground: #fafafa;
+  --muted: #121212;
+  --muted-foreground: #a8a8a8;
+  --accent: #1a1a1a;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: rgba(212, 175, 55, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #d4af37;
+  --chart-1: #d4af37;
+  --chart-2: #c0c0c0;
+  --chart-3: #b87333;
+  --chart-4: #e5e4e2;
+  --chart-5: #8b5cf6;
+  --radius: 0.625rem;
+  --sidebar: #0e0e0e;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #d4af37;
+  --sidebar-primary-foreground: #050505;
+  --sidebar-accent: #161616;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgba(212, 175, 55, 0.1);
+  --sidebar-ring: #d4af37;
+
+  /* Theme-specific */
+  --accent-color: #d4af37;
+  --accent-color-dark: #a68b2a;
+  --accent-secondary: #c0c0c0;
+  --chrome-color: #c0c0c0;
+  --nav-bg: rgba(5, 5, 5, 0.95);
+  --hero-gradient: linear-gradient(180deg, rgba(212, 175, 55, 0.04) 0%, transparent 50%);
+  --card-hover-border: rgba(212, 175, 55, 0.25);
+  --heading-weight: 600;
 }
 
 @layer base {
@@ -100,9 +211,133 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-hacbc-red to-red-400 bg-clip-text text-transparent;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-secondary, var(--accent-color)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   .border-chrome {
-    border-color: var(--color-hacbc-chrome);
+    border-color: var(--chrome-color);
   }
+}
+
+/* ============================================
+   GARAGE-specific styles
+   ============================================ */
+[data-theme="garage"] .nav-bar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="garage"] .hero-section {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 49.5%,
+      rgba(220, 38, 38, 0.03) 49.5%,
+      rgba(220, 38, 38, 0.03) 50.5%,
+      transparent 50.5%
+    ),
+    var(--hero-gradient);
+}
+
+[data-theme="garage"] .feature-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+[data-theme="garage"] .feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #dc2626, transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+[data-theme="garage"] .feature-card:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   ROUTE 66-specific styles
+   ============================================ */
+[data-theme="route66"] .nav-bar {
+  border-bottom: 2px solid rgba(234, 88, 12, 0.15);
+}
+
+[data-theme="route66"] .hero-section {
+  background-image: var(--hero-gradient);
+}
+
+[data-theme="route66"] .feature-card {
+  border: 1px solid rgba(250, 245, 238, 0.06);
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="route66"] .feature-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 3px;
+  background: linear-gradient(90deg, #ea580c, #0891b2);
+  border-radius: 3px 3px 0 0;
+  opacity: 0;
+  transition: opacity 0.3s, width 0.3s;
+}
+
+[data-theme="route66"] .feature-card:hover::after {
+  opacity: 1;
+  width: 80%;
+}
+
+[data-theme="route66"] .text-gradient {
+  background: linear-gradient(135deg, #ea580c, #f59e0b, #0891b2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   CHROME-specific styles
+   ============================================ */
+[data-theme="chrome"] .nav-bar {
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+[data-theme="chrome"] .hero-section {
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.06) 0%, transparent 60%),
+    var(--hero-gradient);
+}
+
+[data-theme="chrome"] .feature-card {
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  position: relative;
+  backdrop-filter: blur(4px);
+  background: rgba(14, 14, 14, 0.8);
+}
+
+[data-theme="chrome"] .feature-card:hover {
+  border-color: rgba(212, 175, 55, 0.2);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.05);
+}
+
+[data-theme="chrome"] .text-gradient {
+  background: linear-gradient(135deg, #d4af37, #f5e6a3, #d4af37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="chrome"] .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
 }

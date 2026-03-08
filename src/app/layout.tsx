@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Oswald } from "next/font/google";
+import { Inter, Oswald, Righteous, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -12,6 +13,17 @@ const inter = Inter({
 
 const oswald = Oswald({
   variable: "--font-heading",
+  subsets: ["latin"],
+});
+
+const righteous = Righteous({
+  variable: "--font-heading-retro",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-heading-chrome",
   subsets: ["latin"],
 });
 
@@ -30,16 +42,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="no" className="dark">
+    <html lang="no" className="dark" data-theme="garage" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${oswald.variable} font-sans antialiased`}
+        className={`${inter.variable} ${oswald.variable} ${righteous.variable} ${montserrat.variable} font-sans antialiased`}
       >
         <SessionProvider>
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <ThemeProvider>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>
