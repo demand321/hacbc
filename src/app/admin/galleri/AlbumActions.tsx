@@ -15,6 +15,7 @@ interface AlbumItem {
   photoCount: number;
   eventTitle: string | null;
   createdAt: string;
+  type: "gallery" | "cruising";
 }
 
 interface EventItem {
@@ -134,16 +135,21 @@ export function AlbumActions({
                     {album.eventTitle && (
                       <p className="text-xs text-hacbc-red">{album.eventTitle}</p>
                     )}
+                    {album.type === "cruising" && (
+                      <p className="text-xs text-blue-400">Cruising-album</p>
+                    )}
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(album.id)}
-                  className="text-red-400 hover:text-red-300"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+                {album.type === "gallery" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(album.id)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
               <div className="mt-3 flex gap-2">
                 <Button variant="outline" size="sm" asChild>
@@ -152,24 +158,26 @@ export function AlbumActions({
                     Se bilder
                   </Link>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={uploadingAlbumId === album.id}
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.accept = "image/*";
-                    input.multiple = true;
-                    input.onchange = () => {
-                      if (input.files?.length) handleUpload(album.id, input.files);
-                    };
-                    input.click();
-                  }}
-                >
-                  <Upload className="mr-1.5 h-3 w-3" />
-                  {uploadingAlbumId === album.id ? "Laster opp..." : "Last opp"}
-                </Button>
+                {album.type === "gallery" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingAlbumId === album.id}
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
+                      input.multiple = true;
+                      input.onchange = () => {
+                        if (input.files?.length) handleUpload(album.id, input.files);
+                      };
+                      input.click();
+                    }}
+                  >
+                    <Upload className="mr-1.5 h-3 w-3" />
+                    {uploadingAlbumId === album.id ? "Laster opp..." : "Last opp"}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
