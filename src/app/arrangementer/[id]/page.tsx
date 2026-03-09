@@ -19,6 +19,7 @@ import {
   Heart,
   ImagePlus,
   Play,
+  Video,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -559,6 +560,24 @@ export default function EventDetailPage({
                   >
                     <ImagePlus className="mr-2 h-4 w-4" />
                     Velg bilde
+                  </Button>
+                  <input
+                    id="event-video-input"
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadPhoto(file);
+                    }}
+                  />
+                  <Button
+                    onClick={() => document.getElementById("event-video-input")?.click()}
+                    disabled={uploading}
+                    variant="outline"
+                  >
+                    <Video className="mr-2 h-4 w-4" />
+                    Last opp video
                   </Button>
                 </div>
               </div>

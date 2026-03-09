@@ -20,6 +20,7 @@ import {
   Heart,
   ImagePlus,
   Play,
+  Video,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -508,6 +509,24 @@ export default function CruisingDetailPage() {
                   >
                     <ImagePlus className="mr-2 h-4 w-4" />
                     Velg bilde
+                  </Button>
+                  <input
+                    id="cruising-video-input"
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadPhoto(file);
+                    }}
+                  />
+                  <Button
+                    onClick={() => document.getElementById("cruising-video-input")?.click()}
+                    disabled={uploading}
+                    variant="outline"
+                  >
+                    <Video className="mr-2 h-4 w-4" />
+                    Last opp video
                   </Button>
                 </div>
               </div>
