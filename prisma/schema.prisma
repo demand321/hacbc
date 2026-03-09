@@ -25,6 +25,9 @@ model User {
   passwordHash   String
   name           String
   phone          String?
+  address        String?
+  postalCode     String?
+  city           String?
   avatarUrl      String?
   role               Role         @default(MEMBER)
   memberStatus       MemberStatus @default(PENDING)

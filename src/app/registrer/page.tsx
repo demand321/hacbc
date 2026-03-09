@@ -42,6 +42,9 @@ export default function RegisterPage() {
           name: formData.get("name"),
           email: formData.get("email"),
           phone: formData.get("phone"),
+          address: formData.get("address"),
+          postalCode: formData.get("postalCode"),
+          city: formData.get("city"),
           password,
         }),
       });
@@ -85,8 +88,22 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <Label htmlFor="phone">Telefon (valgfritt)</Label>
+              <Label htmlFor="phone">Telefon</Label>
               <Input id="phone" name="phone" type="tel" className="mt-1" />
+            </div>
+            <div>
+              <Label htmlFor="address">Adresse</Label>
+              <Input id="address" name="address" className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="postalCode">Postnr</Label>
+                <Input id="postalCode" name="postalCode" className="mt-1" />
+              </div>
+              <div>
+                <Label htmlFor="city">Poststed</Label>
+                <Input id="city" name="city" className="mt-1" />
+              </div>
             </div>
             <div>
               <Label htmlFor="password">Passord</Label>

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const { name, email, phone, password } = await req.json();
+  const { name, email, phone, address, postalCode, city, password } = await req.json();
 
   if (!name || !email || !password) {
     return NextResponse.json(
@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
       name,
       email,
       phone: phone || null,
+      address: address || null,
+      postalCode: postalCode || null,
+      city: city || null,
       passwordHash,
       role: "MEMBER",
       memberStatus: "APPROVED",
@@ -58,7 +61,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const { userId, action, password } = await req.json();
+  const { userId, action, password, name, email, phone, address, postalCode, city } = await req.json();
 
   switch (action) {
     case "approve":
@@ -85,6 +88,33 @@ export async function PATCH(req: NextRequest) {
         data: { role: "MEMBER" },
       });
       break;
+    case "update-user": {
+      if (!name || !email) {
+        return NextResponse.json(
+          { error: "Navn og e-post er påkrevd" },
+          { status: 400 }
+        );
+      }
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser && existingUser.id !== userId) {
+        return NextResponse.json(
+          { error: "E-postadressen er allerede i bruk" },
+          { status: 400 }
+        );
+      }
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          name,
+          email,
+          phone: phone || null,
+          address: address || null,
+          postalCode: postalCode || null,
+          city: city || null,
+        },
+      });
+      break;
+    }
     case "reset-password": {
       if (!password || password.length < 4) {
         return NextResponse.json(

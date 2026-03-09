@@ -1,10 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { MemberList } from "./MemberList";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +14,26 @@ export default async function MemberDirectoryPage() {
     select: {
       id: true,
       name: true,
+      email: true,
+      phone: true,
+      address: true,
+      postalCode: true,
+      city: true,
       avatarUrl: true,
       memberSince: true,
+      vehicles: {
+        where: { published: true },
+        select: { make: true, model: true, year: true },
+      },
     },
     orderBy: { name: "asc" },
   });
+
+  const serialized = members.map((m) => ({
+    ...m,
+    memberSince: m.memberSince?.toISOString() ?? null,
+    vehicleCount: m.vehicles.length,
+  }));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -32,48 +44,7 @@ export default async function MemberDirectoryPage() {
         {members.length} godkjente medlemmer
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {members.map((member) => (
-          <Card
-            key={member.id}
-            className="border-border transition-colors hover:border-hacbc-red/30"
-          >
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-muted text-lg font-semibold">
-                {member.avatarUrl ? (
-                  <img
-                    src={member.avatarUrl}
-                    alt={member.name}
-                    className="h-14 w-14 rounded-full object-cover"
-                  />
-                ) : (
-                  member.name.charAt(0).toUpperCase()
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{member.name}</p>
-                {member.memberSince && (
-                  <p className="text-xs text-muted-foreground">
-                    Medlem siden{" "}
-                    {member.memberSince.toLocaleDateString("nb-NO", {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                )}
-                {member.id !== currentUserId && (
-                  <Button asChild size="sm" variant="ghost" className="mt-1 h-7 px-2">
-                    <Link href={`/medlem/meldinger/${member.id}`}>
-                      <Mail className="mr-1 h-3 w-3" />
-                      Send melding
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <MemberList members={serialized} currentUserId={currentUserId} />
     </div>
   );
 }

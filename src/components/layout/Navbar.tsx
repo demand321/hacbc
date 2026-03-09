@@ -18,6 +18,7 @@ const publicLinks = [
 
 const memberLinks = [
   { href: "/medlem", label: "Mitt område" },
+  { href: "/medlem/medlemmer", label: "Medlemmer" },
   { href: "/medlem/shop", label: "Klubbshop" },
   { href: "/medlem/dokumenter", label: "Dokumenter" },
   { href: "/medlem/meldinger", label: "Meldinger" },

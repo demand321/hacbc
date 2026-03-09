@@ -14,13 +14,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X, Shield, UserPlus, KeyRound } from "lucide-react";
+import { Check, X, Shield, UserPlus, KeyRound, Pencil } from "lucide-react";
 
 type User = {
   id: string;
   name: string;
   email: string;
   phone: string | null;
+  address: string | null;
+  postalCode: string | null;
+  city: string | null;
   role: string;
   memberStatus: string;
   mustChangePassword: boolean;
@@ -35,11 +38,16 @@ export function MemberManagement({ users }: { users: User[] }) {
   const [addName, setAddName] = useState("");
   const [addEmail, setAddEmail] = useState("");
   const [addPhone, setAddPhone] = useState("");
+  const [addAddress, setAddAddress] = useState("");
+  const [addPostalCode, setAddPostalCode] = useState("");
+  const [addCity, setAddCity] = useState("");
   const [addPassword, setAddPassword] = useState("");
   const [addError, setAddError] = useState("");
   const [addSaving, setAddSaving] = useState(false);
   const [resetUserId, setResetUserId] = useState<string | null>(null);
   const [resetPassword, setResetPassword] = useState("");
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [editError, setEditError] = useState("");
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +61,9 @@ export function MemberManagement({ users }: { users: User[] }) {
         name: addName,
         email: addEmail,
         phone: addPhone || null,
+        address: addAddress || null,
+        postalCode: addPostalCode || null,
+        city: addCity || null,
         password: addPassword,
       }),
     });
@@ -67,6 +78,9 @@ export function MemberManagement({ users }: { users: User[] }) {
     setAddName("");
     setAddEmail("");
     setAddPhone("");
+    setAddAddress("");
+    setAddPostalCode("");
+    setAddCity("");
     setAddPassword("");
     setShowAddForm(false);
     setAddSaving(false);
@@ -101,6 +115,39 @@ export function MemberManagement({ users }: { users: User[] }) {
     router.refresh();
   }
 
+  async function handleEditUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editUser) return;
+    setEditError("");
+    setLoading(editUser.id);
+
+    const res = await fetch("/api/admin/medlemmer", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: editUser.id,
+        action: "update-user",
+        name: editUser.name,
+        email: editUser.email,
+        phone: editUser.phone || null,
+        address: editUser.address || null,
+        postalCode: editUser.postalCode || null,
+        city: editUser.city || null,
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      setEditError(data.error || "Noe gikk galt");
+      setLoading(null);
+      return;
+    }
+
+    setEditUser(null);
+    setLoading(null);
+    router.refresh();
+  }
+
   const pending = users.filter((u) => u.memberStatus === "PENDING");
   const approved = users.filter((u) => u.memberStatus === "APPROVED");
 
@@ -127,6 +174,20 @@ export function MemberManagement({ users }: { users: User[] }) {
             <div>
               <Label htmlFor="addPhone">Telefon</Label>
               <Input id="addPhone" value={addPhone} onChange={(e) => setAddPhone(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="addAddress">Adresse</Label>
+              <Input id="addAddress" value={addAddress} onChange={(e) => setAddAddress(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="addPostalCode">Postnr</Label>
+                <Input id="addPostalCode" value={addPostalCode} onChange={(e) => setAddPostalCode(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="addCity">Poststed</Label>
+                <Input id="addCity" value={addCity} onChange={(e) => setAddCity(e.target.value)} />
+              </div>
             </div>
             <div>
               <Label htmlFor="addPassword">Midlertidig passord *</Label>
@@ -224,6 +285,70 @@ export function MemberManagement({ users }: { users: User[] }) {
           </TableHeader>
           <TableBody>
             {approved.map((user) => (
+              editUser?.id === user.id ? (
+                <TableRow key={user.id}>
+                  <TableCell colSpan={5}>
+                    <form onSubmit={handleEditUser} className="space-y-3 py-2">
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <div>
+                          <Label>Navn</Label>
+                          <Input
+                            value={editUser.name}
+                            onChange={(e) => setEditUser({ ...editUser, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label>E-post</Label>
+                          <Input
+                            type="email"
+                            value={editUser.email}
+                            onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label>Telefon</Label>
+                          <Input
+                            value={editUser.phone || ""}
+                            onChange={(e) => setEditUser({ ...editUser, phone: e.target.value || null })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Adresse</Label>
+                          <Input
+                            value={editUser.address || ""}
+                            onChange={(e) => setEditUser({ ...editUser, address: e.target.value || null })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Postnr</Label>
+                          <Input
+                            value={editUser.postalCode || ""}
+                            onChange={(e) => setEditUser({ ...editUser, postalCode: e.target.value || null })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Poststed</Label>
+                          <Input
+                            value={editUser.city || ""}
+                            onChange={(e) => setEditUser({ ...editUser, city: e.target.value || null })}
+                          />
+                        </div>
+                      </div>
+                      {editError && <p className="text-sm text-destructive">{editError}</p>}
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm" disabled={loading === user.id}>
+                          {loading === user.id ? "Lagrer..." : "Lagre"}
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={() => { setEditUser(null); setEditError(""); }}>
+                          Avbryt
+                        </Button>
+                      </div>
+                    </form>
+                  </TableCell>
+                </TableRow>
+              ) : (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">
                   {user.name}
@@ -248,6 +373,14 @@ export function MemberManagement({ users }: { users: User[] }) {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditUser({ ...user })}
+                    >
+                      <Pencil className="mr-1 h-3 w-3" />
+                      Rediger
+                    </Button>
                     {resetUserId === user.id ? (
                       <div className="flex items-center gap-1">
                         <Input
@@ -309,6 +442,7 @@ export function MemberManagement({ users }: { users: User[] }) {
                   </div>
                 </TableCell>
               </TableRow>
+              )
             ))}
           </TableBody>
         </Table>
