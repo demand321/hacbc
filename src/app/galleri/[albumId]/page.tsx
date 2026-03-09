@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Heart, MessageCircle } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoLightbox, { type LightboxPhoto } from "@/components/PhotoLightbox";
 
@@ -15,6 +15,10 @@ interface AlbumData {
   id: string;
   title: string;
   photos: Photo[];
+}
+
+function isVideoUrl(url: string) {
+  return /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
 }
 
 export default function AlbumPhotosPage({
@@ -89,11 +93,28 @@ export default function AlbumPhotosPage({
             onClick={() => setSelectedIndex(idx)}
             className="group relative aspect-square overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <img
-              src={photo.url}
-              alt={photo.caption || `Bilde ${idx + 1}`}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-            />
+            {isVideoUrl(photo.url) ? (
+              <>
+                <video
+                  src={photo.url}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="rounded-full bg-black/60 p-3">
+                    <Play className="h-6 w-6 fill-white text-white" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <img
+                src={photo.url}
+                alt={photo.caption || `Bilde ${idx + 1}`}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+            )}
             <div className="absolute bottom-1 left-1 flex gap-1.5">
               {photo.likes.length > 0 && (
                 <span className="flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">

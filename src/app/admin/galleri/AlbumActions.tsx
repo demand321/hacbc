@@ -166,7 +166,7 @@ export function AlbumActions({
                     onClick={() => {
                       const input = document.createElement("input");
                       input.type = "file";
-                      input.accept = "image/*";
+                      input.accept = "image/*,video/*";
                       input.multiple = true;
                       input.onchange = () => {
                         if (input.files?.length) handleUpload(album.id, input.files);

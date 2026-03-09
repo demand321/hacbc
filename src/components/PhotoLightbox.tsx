@@ -58,9 +58,14 @@ export default function PhotoLightbox({
   const [sending, setSending] = useState(false);
   const [liking, setLiking] = useState(false);
 
+  function isVideoUrl(url: string) {
+    return /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
+  }
+
   if (selectedIndex === null || !photos[selectedIndex]) return null;
 
   const photo = photos[selectedIndex];
+  const isVideo = isVideoUrl(photo.url);
   const label = photo.comment || photo.caption || "Bilde";
   const uploader = photo.uploadedBy?.name || photo.uploaderName;
 
@@ -71,7 +76,7 @@ export default function PhotoLightbox({
   const canDelete = isAdmin || (currentUserId && photo.uploadedById === currentUserId);
 
   const handleDelete = async () => {
-    if (!confirm("Slette dette bildet?")) return;
+    if (!confirm(isVideo ? "Slette denne videoen?" : "Slette dette bildet?")) return;
     try {
       const res = await fetch(`/api/photos/${photo.id}?type=${photoType}`, {
         method: "DELETE",
@@ -163,13 +168,23 @@ export default function PhotoLightbox({
         className="relative flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-card lg:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Image */}
+        {/* Image / Video */}
         <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-black">
-          <img
-            src={photo.url}
-            alt={label}
-            className="max-h-[60vh] w-auto max-w-full object-contain lg:max-h-[90vh]"
-          />
+          {isVideo ? (
+            <video
+              src={photo.url}
+              controls
+              autoPlay
+              playsInline
+              className="max-h-[60vh] w-auto max-w-full object-contain lg:max-h-[90vh]"
+            />
+          ) : (
+            <img
+              src={photo.url}
+              alt={label}
+              className="max-h-[60vh] w-auto max-w-full object-contain lg:max-h-[90vh]"
+            />
+          )}
           {selectedIndex > 0 && (
             <button
               onClick={() => onNavigate(selectedIndex - 1)}
