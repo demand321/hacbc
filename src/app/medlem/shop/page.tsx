@@ -90,7 +90,7 @@ function ProductCard({ product }: { product: Product }) {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
 
-  const hasSizes = product.sizes.length > 0;
+  const hasSizes = (product.sizes ?? []).length > 0;
 
   const handleOrder = async () => {
     if (hasSizes && !selectedSize) {

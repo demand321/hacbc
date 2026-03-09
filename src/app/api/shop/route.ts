@@ -12,6 +12,7 @@ export async function GET() {
         description: true,
         price: true,
         imageUrls: true,
+        sizes: true,
         inStock: true,
       },
     });
