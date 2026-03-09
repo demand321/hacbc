@@ -22,9 +22,10 @@ export default function CreateEditProductPage() {
     priceKr: "",
     imageUrls: "",
     sizes: [] as string[],
+    variants: [] as string[],
     inStock: true,
   });
-  const [customSize, setCustomSize] = useState("");
+  const [newVariant, setNewVariant] = useState("");
 
   useEffect(() => {
     if (!editId) return;
@@ -38,6 +39,7 @@ export default function CreateEditProductPage() {
           priceKr: String(product.price / 100),
           imageUrls: (product.imageUrls ?? []).join("\n"),
           sizes: product.sizes ?? [],
+          variants: product.variants ?? [],
           inStock: product.inStock ?? true,
         });
       }
@@ -45,10 +47,6 @@ export default function CreateEditProductPage() {
     }
     load();
   }, [editId]);
-
-  function update(field: string, value: string | boolean | string[]) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
 
   function toggleSize(size: string) {
     setForm((prev) => ({
@@ -59,18 +57,18 @@ export default function CreateEditProductPage() {
     }));
   }
 
-  function addCustomSize() {
-    const s = customSize.trim();
-    if (s && !form.sizes.includes(s)) {
-      setForm((prev) => ({ ...prev, sizes: [...prev.sizes, s] }));
+  function addVariant() {
+    const v = newVariant.trim();
+    if (v && !form.variants.includes(v)) {
+      setForm((prev) => ({ ...prev, variants: [...prev.variants, v] }));
     }
-    setCustomSize("");
+    setNewVariant("");
   }
 
-  function removeSize(size: string) {
+  function removeVariant(variant: string) {
     setForm((prev) => ({
       ...prev,
-      sizes: prev.sizes.filter((s) => s !== size),
+      variants: prev.variants.filter((v) => v !== variant),
     }));
   }
 
@@ -91,6 +89,7 @@ export default function CreateEditProductPage() {
       price: priceOre,
       imageUrls,
       sizes: form.sizes,
+      variants: form.variants,
       inStock: form.inStock,
     };
 
@@ -126,7 +125,7 @@ export default function CreateEditProductPage() {
             id="name"
             required
             value={form.name}
-            onChange={(e) => update("name", e.target.value)}
+            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
           />
         </div>
         <div>
@@ -135,7 +134,7 @@ export default function CreateEditProductPage() {
             id="description"
             rows={4}
             value={form.description}
-            onChange={(e) => update("description", e.target.value)}
+            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
           />
         </div>
         <div>
@@ -147,7 +146,7 @@ export default function CreateEditProductPage() {
             min="0"
             required
             value={form.priceKr}
-            onChange={(e) => update("priceKr", e.target.value)}
+            onChange={(e) => setForm((p) => ({ ...p, priceKr: e.target.value }))}
           />
           <p className="mt-1 text-xs text-muted-foreground">
             Oppgi pris i hele kroner. Lagres som øre internt.
@@ -156,9 +155,9 @@ export default function CreateEditProductPage() {
 
         {/* Sizes */}
         <div>
-          <Label>Størrelser / varianter</Label>
+          <Label>Størrelser</Label>
           <p className="mb-2 text-xs text-muted-foreground">
-            Velg tilgjengelige størrelser, eller legg til egendefinerte (f.eks. &quot;Logo på oppbrett&quot;).
+            Velg hvilke størrelser produktet finnes i. Kunden velger én.
           </p>
           <div className="flex flex-wrap gap-2">
             {COMMON_SIZES.map((size) => (
@@ -176,36 +175,44 @@ export default function CreateEditProductPage() {
               </button>
             ))}
           </div>
+          {form.sizes.length === 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Ingen størrelser valgt — kunden velger ikke størrelse.
+            </p>
+          )}
+        </div>
 
-          {/* Custom sizes */}
-          {form.sizes.filter((s) => !COMMON_SIZES.includes(s)).length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {form.sizes
-                .filter((s) => !COMMON_SIZES.includes(s))
-                .map((size) => (
-                  <span
-                    key={size}
-                    className="flex items-center gap-1 rounded-md border border-primary bg-primary/10 px-3 py-1.5 text-sm text-primary"
-                  >
-                    {size}
-                    <button type="button" onClick={() => removeSize(size)}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
+        {/* Variants */}
+        <div>
+          <Label>Varianter (valgfritt)</Label>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Egendefinerte valg, f.eks. &quot;Logo på oppbrett&quot;, &quot;Logo foran&quot;. Kunden velger én.
+          </p>
+          {form.variants.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {form.variants.map((variant) => (
+                <span
+                  key={variant}
+                  className="flex items-center gap-1.5 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-sm"
+                >
+                  {variant}
+                  <button type="button" onClick={() => removeVariant(variant)}>
+                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </span>
+              ))}
             </div>
           )}
-
-          <div className="mt-3 flex gap-2">
+          <div className="flex gap-2">
             <Input
-              value={customSize}
-              onChange={(e) => setCustomSize(e.target.value)}
-              placeholder="Egendefinert variant..."
-              className="w-56"
+              value={newVariant}
+              onChange={(e) => setNewVariant(e.target.value)}
+              placeholder="F.eks. Logo på oppbrett"
+              className="w-64"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  addCustomSize();
+                  addVariant();
                 }
               }}
             />
@@ -213,19 +220,13 @@ export default function CreateEditProductPage() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={addCustomSize}
-              disabled={!customSize.trim()}
+              onClick={addVariant}
+              disabled={!newVariant.trim()}
             >
               <Plus className="mr-1 h-3 w-3" />
               Legg til
             </Button>
           </div>
-
-          {form.sizes.length === 0 && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Ingen størrelser valgt — kunden kan ikke velge størrelse ved bestilling.
-            </p>
-          )}
         </div>
 
         <div>
@@ -234,7 +235,7 @@ export default function CreateEditProductPage() {
             id="imageUrls"
             rows={3}
             value={form.imageUrls}
-            onChange={(e) => update("imageUrls", e.target.value)}
+            onChange={(e) => setForm((p) => ({ ...p, imageUrls: e.target.value }))}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -242,7 +243,7 @@ export default function CreateEditProductPage() {
             id="inStock"
             type="checkbox"
             checked={form.inStock}
-            onChange={(e) => update("inStock", e.target.checked)}
+            onChange={(e) => setForm((p) => ({ ...p, inStock: e.target.checked }))}
             className="h-4 w-4 accent-hacbc-red"
           />
           <Label htmlFor="inStock">På lager</Label>

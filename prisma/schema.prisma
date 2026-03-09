@@ -123,6 +123,7 @@ model Product {
   price       Int
   imageUrls   String[]
   sizes       String[] @default([])
+  variants    String[] @default([])
   inStock     Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
@@ -152,6 +153,7 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   size      String?
+  variant   String?
 
   @@index([orderId])
 }

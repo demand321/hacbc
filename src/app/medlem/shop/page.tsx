@@ -22,6 +22,7 @@ interface Product {
   price: number;
   imageUrls: string[];
   sizes: string[];
+  variants: string[];
   inStock: boolean;
 }
 
@@ -84,17 +85,25 @@ export default function MemberShopPage() {
 
 function ProductCard({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState("");
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
 
-  const hasSizes = (product.sizes ?? []).length > 0;
+  const sizes = product.sizes ?? [];
+  const variants = product.variants ?? [];
+  const hasSizes = sizes.length > 0;
+  const hasVariants = variants.length > 0;
 
   const handleOrder = async () => {
     if (hasSizes && !selectedSize) {
-      setError("Velg en størrelse / variant");
+      setError("Velg en størrelse");
+      return;
+    }
+    if (hasVariants && !selectedVariant) {
+      setError("Velg en variant");
       return;
     }
     setSubmitting(true);
@@ -106,6 +115,7 @@ function ProductCard({ product }: { product: Product }) {
         body: JSON.stringify({
           productId: product.id,
           size: selectedSize || null,
+          variant: selectedVariant || null,
           comment: comment.trim(),
         }),
       });
@@ -124,6 +134,7 @@ function ProductCard({ product }: { product: Product }) {
   const resetAndClose = () => {
     setOpen(false);
     setSelectedSize("");
+    setSelectedVariant("");
     setComment("");
     setError("");
     setSuccess(false);
@@ -158,18 +169,18 @@ function ProductCard({ product }: { product: Product }) {
             {product.description}
           </p>
         )}
-        {hasSizes && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {product.sizes.map((size) => (
-              <span
-                key={size}
-                className="rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground"
-              >
-                {size}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="mt-2 flex flex-wrap gap-1">
+          {hasSizes && sizes.map((s) => (
+            <span key={s} className="rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground">
+              {s}
+            </span>
+          ))}
+          {hasVariants && variants.map((v) => (
+            <span key={v} className="rounded border border-accent/30 bg-accent/5 px-1.5 py-0.5 text-xs text-muted-foreground">
+              {v}
+            </span>
+          ))}
+        </div>
         <div className="mt-auto flex items-center justify-between pt-4">
           <span className="text-lg font-bold text-primary">
             {formatNOK(product.price)}
@@ -205,16 +216,13 @@ function ProductCard({ product }: { product: Product }) {
                   <div className="space-y-4">
                     {hasSizes && (
                       <div>
-                        <Label>Velg størrelse / variant *</Label>
+                        <Label>Størrelse *</Label>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {product.sizes.map((size) => (
+                          {sizes.map((size) => (
                             <button
                               key={size}
                               type="button"
-                              onClick={() => {
-                                setSelectedSize(size);
-                                setError("");
-                              }}
+                              onClick={() => { setSelectedSize(size); setError(""); }}
                               className={`rounded-md border px-3 py-2 text-sm transition-colors ${
                                 selectedSize === size
                                   ? "border-primary bg-primary/10 text-primary font-medium"
@@ -222,6 +230,27 @@ function ProductCard({ product }: { product: Product }) {
                               }`}
                             >
                               {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {hasVariants && (
+                      <div>
+                        <Label>Variant *</Label>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {variants.map((variant) => (
+                            <button
+                              key={variant}
+                              type="button"
+                              onClick={() => { setSelectedVariant(variant); setError(""); }}
+                              className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+                                selectedVariant === variant
+                                  ? "border-primary bg-primary/10 text-primary font-medium"
+                                  : "border-border text-muted-foreground hover:border-primary/50"
+                              }`}
+                            >
+                              {variant}
                             </button>
                           ))}
                         </div>

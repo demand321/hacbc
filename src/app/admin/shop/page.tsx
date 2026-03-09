@@ -66,7 +66,9 @@ export default async function AdminShopPage() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{(product.price / 100).toFixed(0)} kr</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {product.sizes.length > 0 ? product.sizes.join(", ") : "—"}
+                    {product.sizes.length > 0 || product.variants.length > 0
+                      ? [...product.sizes, ...product.variants].join(", ")
+                      : "—"}
                   </TableCell>
                   <TableCell>
                     <span
@@ -126,7 +128,10 @@ export default async function AdminShopPage() {
                   </TableCell>
                   <TableCell className="max-w-[250px] text-sm text-muted-foreground">
                     {order.items
-                      .map((i) => `${i.product.name}${i.size ? ` (${i.size})` : ""} x${i.quantity}`)
+                      .map((i) => {
+                        const details = [i.size, i.variant].filter(Boolean).join(", ");
+                        return `${i.product.name}${details ? ` (${details})` : ""} x${i.quantity}`;
+                      })
                       .join(", ")}
                     {order.note && (
                       <p className="mt-0.5 text-xs italic text-muted-foreground/70">

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { productId, comment, size } = body;
+    const { productId, comment, size, variant } = body;
 
     if (!productId) {
       return NextResponse.json(
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
             productId: product.id,
             quantity: 1,
             size: size?.trim() || null,
+            variant: variant?.trim() || null,
           },
         },
       },

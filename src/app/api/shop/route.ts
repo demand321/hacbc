@@ -13,6 +13,7 @@ export async function GET() {
         price: true,
         imageUrls: true,
         sizes: true,
+        variants: true,
         inStock: true,
       },
     });
