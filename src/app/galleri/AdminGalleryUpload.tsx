@@ -13,10 +13,37 @@ export function AdminGalleryUpload({ albumId }: { albumId: string }) {
   async function handleUpload(files: FileList) {
     setUploading(true);
     for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("albumId", albumId);
-      await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
+      const isLarge = file.size > 4 * 1024 * 1024;
+      if (isLarge) {
+        // Signed URL upload for large files (video)
+        const signedRes = await fetch("/api/upload/signed-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type,
+            folder: `gallery/${albumId}`,
+          }),
+        });
+        if (!signedRes.ok) continue;
+        const { signedUrl, storagePath, publicUrl } = await signedRes.json();
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!uploadRes.ok) continue;
+        await fetch("/api/admin/galleri/photos/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: publicUrl, storagePath, albumId }),
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("albumId", albumId);
+        await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
+      }
     }
     setUploading(false);
     router.refresh();

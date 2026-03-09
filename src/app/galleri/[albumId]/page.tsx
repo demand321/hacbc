@@ -55,12 +55,42 @@ export default function AlbumPhotosPage({
   async function handleAdminUpload(files: FileList) {
     setUploading(true);
     for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("albumId", albumId);
-      const res = await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
-      if (res.ok) {
-        const photo = await res.json();
+      const isLarge = file.size > 4 * 1024 * 1024;
+      let photo = null;
+
+      if (isLarge) {
+        const signedRes = await fetch("/api/upload/signed-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type,
+            folder: `gallery/${albumId}`,
+          }),
+        });
+        if (!signedRes.ok) continue;
+        const { signedUrl, storagePath, publicUrl } = await signedRes.json();
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!uploadRes.ok) continue;
+        const regRes = await fetch("/api/admin/galleri/photos/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: publicUrl, storagePath, albumId }),
+        });
+        if (regRes.ok) photo = await regRes.json();
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("albumId", albumId);
+        const res = await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
+        if (res.ok) photo = await res.json();
+      }
+
+      if (photo) {
         setAlbum((prev) =>
           prev
             ? { ...prev, photos: [...prev.photos, { ...photo, likes: [], comments: [] }] }

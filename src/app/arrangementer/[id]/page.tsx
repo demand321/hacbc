@@ -289,33 +289,88 @@ export default function EventDetailPage({
   };
 
   const handleUploadPhoto = async (file: File) => {
-    if (!signupSuccess && !isLoggedIn) return;
+    if (!signupSuccess && !isAdmin) return;
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      if (mySignupId) form.append("signupId", mySignupId);
-      if (uploadCaption.trim()) form.append("caption", uploadCaption.trim());
+      const isLargeFile = file.size > 4 * 1024 * 1024;
 
-      const res = await fetch(`/api/arrangementer/${eventId}/photos`, {
-        method: "POST",
-        body: form,
-      });
-      if (res.ok) {
-        const photo = await res.json();
-        photo.likes = photo.likes || [];
-        photo.comments = photo.comments || [];
-        setEvent((prev) =>
-          prev ? { ...prev, photos: [...prev.photos, photo] } : prev
-        );
-        setUploadCaption("");
-        if (fileInputRef.current) fileInputRef.current.value = "";
+      if (isLargeFile) {
+        // Large files: get signed URL and upload directly to Supabase
+        const signedRes = await fetch("/api/upload/signed-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type,
+            folder: `gallery/event-${eventId}`,
+          }),
+        });
+        if (!signedRes.ok) {
+          const data = await signedRes.json().catch(() => ({}));
+          alert(data.error || "Kunne ikke starte opplasting");
+          return;
+        }
+        const { signedUrl, storagePath, publicUrl } = await signedRes.json();
+
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!uploadRes.ok) {
+          alert("Opplasting til lagring feilet");
+          return;
+        }
+
+        // Register in database
+        const regRes = await fetch(`/api/arrangementer/${eventId}/photos/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: publicUrl,
+            storagePath,
+            caption: uploadCaption.trim() || null,
+          }),
+        });
+        if (regRes.ok) {
+          const photo = await regRes.json();
+          photo.likes = photo.likes || [];
+          photo.comments = photo.comments || [];
+          setEvent((prev) =>
+            prev ? { ...prev, photos: [...prev.photos, photo] } : prev
+          );
+          setUploadCaption("");
+        } else {
+          const data = await regRes.json().catch(() => ({}));
+          alert(data.error || "Registrering feilet");
+        }
       } else {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || "Opplasting feilet");
+        // Small files: direct FormData upload
+        const form = new FormData();
+        form.append("file", file);
+        if (mySignupId) form.append("signupId", mySignupId);
+        if (uploadCaption.trim()) form.append("caption", uploadCaption.trim());
+
+        const res = await fetch(`/api/arrangementer/${eventId}/photos`, {
+          method: "POST",
+          body: form,
+        });
+        if (res.ok) {
+          const photo = await res.json();
+          photo.likes = photo.likes || [];
+          photo.comments = photo.comments || [];
+          setEvent((prev) =>
+            prev ? { ...prev, photos: [...prev.photos, photo] } : prev
+          );
+          setUploadCaption("");
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(data.error || "Opplasting feilet");
+        }
       }
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch {
-      // ignore
+      alert("Opplasting feilet");
     } finally {
       setUploading(false);
     }
