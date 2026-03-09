@@ -469,7 +469,7 @@ export default function CruisingDetailPage() {
                     placeholder="Beskriv bildet..."
                   />
                 </div>
-                <div>
+                <div className="flex gap-2">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -480,13 +480,32 @@ export default function CruisingDetailPage() {
                       if (file) handleUploadPhoto(file);
                     }}
                   />
+                  <input
+                    id="cruising-camera-input"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadPhoto(file);
+                    }}
+                  />
+                  <Button
+                    onClick={() => document.getElementById("cruising-camera-input")?.click()}
+                    disabled={uploading}
+                    variant="outline"
+                  >
+                    <Camera className="mr-2 h-4 w-4" />
+                    Ta bilde
+                  </Button>
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
                     variant="outline"
                   >
                     <ImagePlus className="mr-2 h-4 w-4" />
-                    {uploading ? "Laster opp..." : "Last opp bilde"}
+                    Velg bilde
                   </Button>
                 </div>
               </div>
