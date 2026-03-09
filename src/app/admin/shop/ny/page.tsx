@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Plus } from "lucide-react";
 
-const COMMON_SIZES = ["One Size", "XS", "S", "M", "L", "XL", "XXL", "3XL"];
+const COMMON_SIZES = ["One Size", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
 
 export default function CreateEditProductPage() {
   const router = useRouter();
