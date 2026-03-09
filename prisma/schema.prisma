@@ -42,7 +42,7 @@ model User {
   eventSignups     EventSignup[]
   photoComments    PhotoComment[]
   photoLikes       PhotoLike[]
-  documents        Document[]
+  clubDocuments    ClubDocument[]
 }
 
 model Vehicle {
@@ -316,7 +316,7 @@ model PhotoComment {
   @@index([cruisingPhotoId])
 }
 
-model Document {
+model ClubDocument {
   id           String   @id @default(cuid())
   title        String
   description  String?
@@ -329,6 +329,7 @@ model Document {
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])
   createdAt    DateTime @default(now())
 
+  @@map("documents")
   @@index([uploadedById])
 }
 

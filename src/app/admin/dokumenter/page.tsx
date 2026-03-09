@@ -4,7 +4,7 @@ import { DocumentActions } from "./DocumentActions";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDocumentsPage() {
-  const documents = await prisma.document.findMany({
+  const documents = await prisma.clubDocument.findMany({
     orderBy: { createdAt: "desc" },
     include: { uploadedBy: { select: { name: true } } },
   });

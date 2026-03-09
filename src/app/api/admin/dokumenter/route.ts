@@ -24,7 +24,7 @@ export async function GET() {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const documents = await prisma.document.findMany({
+  const documents = await prisma.clubDocument.findMany({
     orderBy: { createdAt: "desc" },
     include: { uploadedBy: { select: { name: true } } },
   });
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
 
-  const document = await prisma.document.create({
+  const document = await prisma.clubDocument.create({
     data: {
       title: title.trim(),
       description: description?.trim() || null,
@@ -92,7 +92,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Mangler id eller tittel" }, { status: 400 });
   }
 
-  const document = await prisma.document.update({
+  const document = await prisma.clubDocument.update({
     where: { id },
     data: { title: title.trim(), description: description?.trim() || null },
   });
@@ -107,7 +107,7 @@ export async function DELETE(req: NextRequest) {
 
   const { id } = await req.json();
 
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const doc = await prisma.clubDocument.findUnique({ where: { id } });
   if (!doc) {
     return NextResponse.json({ error: "Ikke funnet" }, { status: 404 });
   }
@@ -116,7 +116,7 @@ export async function DELETE(req: NextRequest) {
     await supabase.storage.from(BUCKET).remove([doc.storagePath]);
   }
 
-  await prisma.document.delete({ where: { id } });
+  await prisma.clubDocument.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
 }

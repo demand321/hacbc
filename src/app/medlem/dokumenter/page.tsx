@@ -22,7 +22,7 @@ function getFileIcon(mimeType: string) {
 }
 
 export default async function MemberDocumentsPage() {
-  const documents = await prisma.document.findMany({
+  const documents = await prisma.clubDocument.findMany({
     orderBy: { createdAt: "desc" },
     include: { uploadedBy: { select: { name: true } } },
   });

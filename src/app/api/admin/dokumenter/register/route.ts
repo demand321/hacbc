@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Mangler påkrevde felt" }, { status: 400 });
   }
 
-  const document = await prisma.document.create({
+  const document = await prisma.clubDocument.create({
     data: {
       title: title.trim(),
       description: description?.trim() || null,
