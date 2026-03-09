@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Heart, MessageCircle, Play } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Play, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoLightbox, { type LightboxPhoto } from "@/components/PhotoLightbox";
 
@@ -31,6 +31,7 @@ export default function AlbumPhotosPage({
   const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [albumId, setAlbumId] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     params.then((p) => setAlbumId(p.albumId));
@@ -47,6 +48,28 @@ export default function AlbumPhotosPage({
       .catch(() => setAlbum(null))
       .finally(() => setLoading(false));
   }, [albumId]);
+
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isCruisingAlbum = albumId.startsWith("cruising-");
+
+  async function handleAdminUpload(files: FileList) {
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("albumId", albumId);
+      const res = await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
+      if (res.ok) {
+        const photo = await res.json();
+        setAlbum((prev) =>
+          prev
+            ? { ...prev, photos: [...prev.photos, { ...photo, likes: [], comments: [] }] }
+            : prev
+        );
+      }
+    }
+    setUploading(false);
+  }
 
   if (loading) {
     return (
@@ -79,9 +102,31 @@ export default function AlbumPhotosPage({
         </Link>
       </Button>
 
-      <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold uppercase tracking-tight sm:text-4xl">
-        {album.title}
-      </h1>
+      <div className="flex items-center gap-4">
+        <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold uppercase tracking-tight sm:text-4xl">
+          {album.title}
+        </h1>
+        {isAdmin && !isCruisingAlbum && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = "image/*,video/*";
+              input.multiple = true;
+              input.onchange = () => {
+                if (input.files?.length) handleAdminUpload(input.files);
+              };
+              input.click();
+            }}
+          >
+            <Upload className="mr-1.5 h-4 w-4" />
+            {uploading ? "Laster opp..." : "Last opp"}
+          </Button>
+        )}
+      </div>
       <p className="mt-2 text-muted-foreground">
         {album.photos.length} bilder
       </p>
@@ -138,10 +183,10 @@ export default function AlbumPhotosPage({
         selectedIndex={selectedIndex}
         onClose={() => setSelectedIndex(null)}
         onNavigate={setSelectedIndex}
-        photoType={albumId.startsWith("cruising-") ? "cruising" : "gallery"}
+        photoType={isCruisingAlbum ? "cruising" : "gallery"}
         currentUserName={session?.user?.name || null}
         currentUserId={session?.user?.id || null}
-        isAdmin={session?.user?.role === "ADMIN"}
+        isAdmin={isAdmin}
         onPhotosChange={(updated) =>
           setAlbum((prev) => (prev ? { ...prev, photos: updated as Photo[] } : prev))
         }
