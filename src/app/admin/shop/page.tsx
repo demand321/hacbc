@@ -48,6 +48,7 @@ export default async function AdminShopPage() {
               <TableRow>
                 <TableHead>Navn</TableHead>
                 <TableHead>Pris</TableHead>
+                <TableHead>Størrelser</TableHead>
                 <TableHead>På lager</TableHead>
                 <TableHead className="text-right">Handlinger</TableHead>
               </TableRow>
@@ -55,7 +56,7 @@ export default async function AdminShopPage() {
             <TableBody>
               {products.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     Ingen produkter ennå.
                   </TableCell>
                 </TableRow>
@@ -64,6 +65,9 @@ export default async function AdminShopPage() {
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{(product.price / 100).toFixed(0)} kr</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {product.sizes.length > 0 ? product.sizes.join(", ") : "—"}
+                  </TableCell>
                   <TableCell>
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -120,10 +124,15 @@ export default async function AdminShopPage() {
                       year: "numeric",
                     })}
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                  <TableCell className="max-w-[250px] text-sm text-muted-foreground">
                     {order.items
-                      .map((i) => `${i.product.name} x${i.quantity}`)
+                      .map((i) => `${i.product.name}${i.size ? ` (${i.size})` : ""} x${i.quantity}`)
                       .join(", ")}
+                    {order.note && (
+                      <p className="mt-0.5 text-xs italic text-muted-foreground/70">
+                        {order.note}
+                      </p>
+                    )}
                   </TableCell>
                   <TableCell>
                     <OrderStatusSelect orderId={order.id} currentStatus={order.status} />

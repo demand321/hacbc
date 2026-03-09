@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -22,6 +21,7 @@ interface Product {
   description: string | null;
   price: number;
   imageUrls: string[];
+  sizes: string[];
   inStock: boolean;
 }
 
@@ -83,13 +83,20 @@ export default function MemberShopPage() {
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const [selectedSize, setSelectedSize] = useState("");
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
 
+  const hasSizes = product.sizes.length > 0;
+
   const handleOrder = async () => {
+    if (hasSizes && !selectedSize) {
+      setError("Velg en størrelse / variant");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
@@ -98,6 +105,7 @@ function ProductCard({ product }: { product: Product }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
+          size: selectedSize || null,
           comment: comment.trim(),
         }),
       });
@@ -115,6 +123,7 @@ function ProductCard({ product }: { product: Product }) {
 
   const resetAndClose = () => {
     setOpen(false);
+    setSelectedSize("");
     setComment("");
     setError("");
     setSuccess(false);
@@ -149,6 +158,18 @@ function ProductCard({ product }: { product: Product }) {
             {product.description}
           </p>
         )}
+        {hasSizes && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {product.sizes.map((size) => (
+              <span
+                key={size}
+                className="rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground"
+              >
+                {size}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="mt-auto flex items-center justify-between pt-4">
           <span className="text-lg font-bold text-primary">
             {formatNOK(product.price)}
@@ -182,6 +203,30 @@ function ProductCard({ product }: { product: Product }) {
               ) : (
                 <>
                   <div className="space-y-4">
+                    {hasSizes && (
+                      <div>
+                        <Label>Velg størrelse / variant *</Label>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {product.sizes.map((size) => (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => {
+                                setSelectedSize(size);
+                                setError("");
+                              }}
+                              className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+                                selectedSize === size
+                                  ? "border-primary bg-primary/10 text-primary font-medium"
+                                  : "border-border text-muted-foreground hover:border-primary/50"
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <Label htmlFor="order-comment">
                         Kommentar (valgfritt)
@@ -190,8 +235,8 @@ function ProductCard({ product }: { product: Product }) {
                         id="order-comment"
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
-                        placeholder="Størrelse, farge, osv."
-                        rows={3}
+                        placeholder="Annen info..."
+                        rows={2}
                       />
                     </div>
                     {error && (

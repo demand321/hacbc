@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       description: body.description || null,
       price: body.price,
       imageUrls: body.imageUrls ?? [],
+      sizes: body.sizes ?? [],
       inStock: body.inStock ?? true,
     },
   });
@@ -65,6 +66,7 @@ export async function PATCH(req: NextRequest) {
       description: data.description ?? undefined,
       price: data.price,
       imageUrls: data.imageUrls ?? undefined,
+      sizes: data.sizes ?? undefined,
       inStock: data.inStock ?? undefined,
     },
   });
