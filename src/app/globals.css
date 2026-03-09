@@ -197,6 +197,153 @@
   --heading-weight: 600;
 }
 
+/* ============================================
+   THEME 4: MIDNIGHT CRUISE - Neon & Asfalt
+   Inspirert av nattkjøring, neonskilt og 80-talls synth
+   ============================================ */
+[data-theme="midnight"] {
+  --background: #0a0012;
+  --foreground: #f0e6ff;
+  --card: #12001f;
+  --card-foreground: #f0e6ff;
+  --popover: #12001f;
+  --popover-foreground: #f0e6ff;
+  --primary: #d946ef;
+  --primary-foreground: #ffffff;
+  --secondary: #1a0630;
+  --secondary-foreground: #f0e6ff;
+  --muted: #150525;
+  --muted-foreground: #a78bbd;
+  --accent: #1f0a35;
+  --accent-foreground: #f0e6ff;
+  --destructive: #f43f5e;
+  --border: rgba(217, 70, 239, 0.12);
+  --input: rgba(217, 70, 239, 0.15);
+  --ring: #d946ef;
+  --chart-1: #d946ef;
+  --chart-2: #06b6d4;
+  --chart-3: #f43f5e;
+  --chart-4: #a855f7;
+  --chart-5: #22d3ee;
+  --radius: 0.5rem;
+  --sidebar: #12001f;
+  --sidebar-foreground: #f0e6ff;
+  --sidebar-primary: #d946ef;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a0630;
+  --sidebar-accent-foreground: #f0e6ff;
+  --sidebar-border: rgba(217, 70, 239, 0.12);
+  --sidebar-ring: #d946ef;
+
+  --accent-color: #d946ef;
+  --accent-color-dark: #a21caf;
+  --accent-secondary: #06b6d4;
+  --chrome-color: #a78bbd;
+  --nav-bg: rgba(10, 0, 18, 0.92);
+  --hero-gradient: linear-gradient(180deg, rgba(217, 70, 239, 0.08) 0%, rgba(6, 182, 212, 0.04) 50%, transparent 100%);
+  --card-hover-border: rgba(217, 70, 239, 0.4);
+  --heading-weight: 600;
+  --font-heading: var(--font-heading-midnight);
+}
+
+/* ============================================
+   THEME 5: THUNDER - Elektrisk Blå Kraft
+   Inspirert av muscle cars, drag racing og ren kraft
+   ============================================ */
+[data-theme="thunder"] {
+  --background: #020a18;
+  --foreground: #e8f0fe;
+  --card: #081428;
+  --card-foreground: #e8f0fe;
+  --popover: #081428;
+  --popover-foreground: #e8f0fe;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #0c1a32;
+  --secondary-foreground: #e8f0fe;
+  --muted: #0a1525;
+  --muted-foreground: #7da2cc;
+  --accent: #0f1f3d;
+  --accent-foreground: #e8f0fe;
+  --destructive: #ef4444;
+  --border: rgba(59, 130, 246, 0.12);
+  --input: rgba(59, 130, 246, 0.15);
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
+  --chart-2: #f59e0b;
+  --chart-3: #ef4444;
+  --chart-4: #22d3ee;
+  --chart-5: #a855f7;
+  --radius: 0.25rem;
+  --sidebar: #081428;
+  --sidebar-foreground: #e8f0fe;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0c1a32;
+  --sidebar-accent-foreground: #e8f0fe;
+  --sidebar-border: rgba(59, 130, 246, 0.12);
+  --sidebar-ring: #3b82f6;
+
+  --accent-color: #3b82f6;
+  --accent-color-dark: #1d4ed8;
+  --accent-secondary: #f59e0b;
+  --chrome-color: #7da2cc;
+  --nav-bg: rgba(2, 10, 24, 0.95);
+  --hero-gradient: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(245, 158, 11, 0.03) 60%, transparent 100%);
+  --card-hover-border: rgba(59, 130, 246, 0.35);
+  --heading-weight: 700;
+  --font-heading: var(--font-heading-thunder);
+}
+
+/* ============================================
+   THEME 6: DESERT RUN - Støv & Solnedgang
+   Inspirert av ørkenveier, rust og gylne solnedganger
+   ============================================ */
+[data-theme="desert"] {
+  --background: #1a120a;
+  --foreground: #faf0e4;
+  --card: #231810;
+  --card-foreground: #faf0e4;
+  --popover: #231810;
+  --popover-foreground: #faf0e4;
+  --primary: #d97706;
+  --primary-foreground: #1a120a;
+  --secondary: #2a1c12;
+  --secondary-foreground: #faf0e4;
+  --muted: #221710;
+  --muted-foreground: #b8a08a;
+  --accent: #302018;
+  --accent-foreground: #faf0e4;
+  --destructive: #dc2626;
+  --border: rgba(217, 119, 6, 0.12);
+  --input: rgba(217, 119, 6, 0.15);
+  --ring: #d97706;
+  --chart-1: #d97706;
+  --chart-2: #dc2626;
+  --chart-3: #92400e;
+  --chart-4: #f59e0b;
+  --chart-5: #78350f;
+  --radius: 0.125rem;
+  --sidebar: #231810;
+  --sidebar-foreground: #faf0e4;
+  --sidebar-primary: #d97706;
+  --sidebar-primary-foreground: #1a120a;
+  --sidebar-accent: #2a1c12;
+  --sidebar-accent-foreground: #faf0e4;
+  --sidebar-border: rgba(217, 119, 6, 0.12);
+  --sidebar-ring: #d97706;
+
+  --accent-color: #d97706;
+  --accent-color-dark: #92400e;
+  --accent-secondary: #dc2626;
+  --chrome-color: #b8a08a;
+  --nav-bg: rgba(26, 18, 10, 0.95);
+  --hero-gradient: linear-gradient(180deg, rgba(217, 119, 6, 0.1) 0%, rgba(220, 38, 38, 0.04) 60%, transparent 100%);
+  --card-hover-border: rgba(217, 119, 6, 0.35);
+  --heading-weight: 400;
+  --font-heading: var(--font-heading-desert);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -340,4 +487,163 @@
 
 [data-theme="chrome"] .section-divider {
   background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+}
+
+/* ============================================
+   MIDNIGHT CRUISE-specific styles
+   ============================================ */
+[data-theme="midnight"] .nav-bar {
+  border-bottom: 1px solid rgba(217, 70, 239, 0.15);
+  box-shadow: 0 1px 20px rgba(217, 70, 239, 0.05);
+}
+
+[data-theme="midnight"] .hero-section {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(217, 70, 239, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+    var(--hero-gradient);
+}
+
+[data-theme="midnight"] .feature-card {
+  border: 1px solid rgba(217, 70, 239, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+[data-theme="midnight"] .feature-card:hover {
+  border-color: rgba(217, 70, 239, 0.3);
+  box-shadow:
+    0 0 20px rgba(217, 70, 239, 0.08),
+    0 0 60px rgba(6, 182, 212, 0.04);
+}
+
+[data-theme="midnight"] .feature-card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, #d946ef, #06b6d4, #d946ef);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+[data-theme="midnight"] .feature-card:hover::before {
+  opacity: 1;
+}
+
+[data-theme="midnight"] .text-gradient {
+  background: linear-gradient(135deg, #d946ef, #f0abfc, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="midnight"] .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(217, 70, 239, 0.3), rgba(6, 182, 212, 0.2), transparent);
+}
+
+/* ============================================
+   THUNDER-specific styles
+   ============================================ */
+[data-theme="thunder"] .nav-bar {
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="thunder"] .hero-section {
+  background-image:
+    linear-gradient(180deg, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 98%,
+      rgba(59, 130, 246, 0.04) 98%,
+      rgba(59, 130, 246, 0.04) 100%
+    );
+}
+
+[data-theme="thunder"] .feature-card {
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+[data-theme="thunder"] .feature-card:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="thunder"] .feature-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+[data-theme="thunder"] .text-gradient {
+  background: linear-gradient(135deg, #3b82f6, #93c5fd, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="thunder"] .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+  height: 2px;
+}
+
+/* ============================================
+   DESERT RUN-specific styles
+   ============================================ */
+[data-theme="desert"] .nav-bar {
+  border-bottom: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+[data-theme="desert"] .hero-section {
+  background-image:
+    linear-gradient(180deg, rgba(217, 119, 6, 0.06) 0%, rgba(220, 38, 38, 0.03) 50%, transparent 100%),
+    radial-gradient(ellipse at 50% 100%, rgba(217, 119, 6, 0.04) 0%, transparent 50%);
+}
+
+[data-theme="desert"] .feature-card {
+  border: 1px solid rgba(217, 119, 6, 0.1);
+  position: relative;
+}
+
+[data-theme="desert"] .feature-card:hover {
+  border-color: rgba(217, 119, 6, 0.25);
+  background: rgba(35, 24, 16, 0.9);
+}
+
+[data-theme="desert"] .feature-card::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #d97706, #dc2626, #d97706);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+[data-theme="desert"] .feature-card:hover::before {
+  opacity: 0.6;
+}
+
+[data-theme="desert"] .text-gradient {
+  background: linear-gradient(135deg, #d97706, #fbbf24, #dc2626);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="desert"] .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(217, 119, 6, 0.25), rgba(220, 38, 38, 0.15), transparent);
 }

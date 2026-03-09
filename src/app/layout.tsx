@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Oswald, Righteous, Montserrat } from "next/font/google";
+import { Inter, Oswald, Righteous, Montserrat, Teko, Rajdhani, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -27,6 +27,23 @@ const montserrat = Montserrat({
   subsets: ["latin"],
 });
 
+const teko = Teko({
+  variable: "--font-heading-midnight",
+  subsets: ["latin"],
+});
+
+const rajdhani = Rajdhani({
+  variable: "--font-heading-thunder",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+});
+
+const bebasNeue = Bebas_Neue({
+  variable: "--font-heading-desert",
+  weight: "400",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "HACBC - Hamar American Car & Bike Club",
@@ -44,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="no" className="dark" data-theme="garage" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${oswald.variable} ${righteous.variable} ${montserrat.variable} font-sans antialiased`}
+        className={`${inter.variable} ${oswald.variable} ${righteous.variable} ${montserrat.variable} ${teko.variable} ${rajdhani.variable} ${bebasNeue.variable} font-sans antialiased`}
       >
         <SessionProvider>
           <ThemeProvider>

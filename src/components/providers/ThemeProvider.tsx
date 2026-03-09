@@ -18,7 +18,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("hacbc-theme") as ThemeId | null;
-    if (saved && ["garage", "route66", "chrome"].includes(saved)) {
+    if (saved && ["garage", "route66", "chrome", "midnight", "thunder", "desert"].includes(saved)) {
       setTheme(saved);
     }
   }, []);

@@ -9,6 +9,9 @@ const themeColors: Record<string, string> = {
   garage: "bg-red-600",
   route66: "bg-orange-500",
   chrome: "bg-yellow-500",
+  midnight: "bg-fuchsia-500",
+  thunder: "bg-blue-500",
+  desert: "bg-amber-600",
 };
 
 export function ThemeSwitcher() {
