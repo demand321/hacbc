@@ -107,6 +107,7 @@ export default function EventDetailPage({
 }) {
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+  const isAdmin = session?.user?.role === "ADMIN";
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [eventId, setEventId] = useState("");
@@ -494,7 +495,7 @@ export default function EventDetailPage({
       )}
 
       {/* Photo gallery + upload */}
-      {(event.photos.length > 0 || signupSuccess) && (
+      {(event.photos.length > 0 || signupSuccess || isAdmin) && (
         <div className="mb-8">
           <h2 className="mb-4 flex items-center gap-2 font-[family-name:var(--font-heading)] text-xl font-bold uppercase">
             <Camera className="h-5 w-5 text-primary" />
@@ -506,8 +507,8 @@ export default function EventDetailPage({
             )}
           </h2>
 
-          {/* Upload area for participants */}
-          {signupSuccess && isLoggedIn && (
+          {/* Upload area for participants and admin */}
+          {((signupSuccess && isLoggedIn) || isAdmin) && (
             <div className="mb-4 rounded-lg border border-dashed border-border p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div className="flex-1">
@@ -809,7 +810,7 @@ export default function EventDetailPage({
         photoType="gallery"
         currentUserName={session?.user?.name || null}
         currentUserId={session?.user?.id || null}
-        isAdmin={session?.user?.role === "ADMIN"}
+        isAdmin={isAdmin}
         onPhotosChange={(updated) =>
           setEvent((prev) =>
             prev ? { ...prev, photos: updated as EventPhoto[] } : prev

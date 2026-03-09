@@ -53,7 +53,8 @@ export async function POST(
     });
   }
 
-  if (!signup) {
+  const isAdmin = session?.user?.role === "ADMIN";
+  if (!signup && !isAdmin) {
     return NextResponse.json({ error: "Du må være påmeldt for å laste opp bilder" }, { status: 403 });
   }
 
@@ -80,7 +81,7 @@ export async function POST(
       comment,
       eventId: id,
       uploadedById: session?.user?.id || null,
-      uploaderName: signup.name,
+      uploaderName: signup?.name || session?.user?.name || "Admin",
     },
     include: { uploadedBy: { select: { name: true } } },
   });

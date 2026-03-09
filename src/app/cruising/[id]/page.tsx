@@ -122,6 +122,7 @@ export default function CruisingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+  const isAdmin = session?.user?.role === "ADMIN";
   const [event, setEvent] = useState<CruisingEventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [routeInfo, setRouteInfo] = useState<{
@@ -445,7 +446,7 @@ export default function CruisingDetailPage() {
       )}
 
       {/* Photo gallery + upload */}
-      {(event.photos.length > 0 || signupSuccess) && (
+      {(event.photos.length > 0 || signupSuccess || isAdmin) && (
         <div className="mb-8">
           <h2 className="mb-4 flex items-center gap-2 font-[family-name:var(--font-heading)] text-xl font-bold uppercase">
             <Camera className="h-5 w-5 text-primary" />
@@ -457,8 +458,8 @@ export default function CruisingDetailPage() {
             )}
           </h2>
 
-          {/* Upload area for participants */}
-          {signupSuccess && (
+          {/* Upload area for participants and admin */}
+          {(signupSuccess || isAdmin) && (
             <div className="mb-4 rounded-lg border border-dashed border-border p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div className="flex-1">
@@ -785,7 +786,7 @@ export default function CruisingDetailPage() {
         photoType="cruising"
         currentUserName={session?.user?.name || null}
         currentUserId={session?.user?.id || null}
-        isAdmin={session?.user?.role === "ADMIN"}
+        isAdmin={isAdmin}
         onPhotosChange={(updated) =>
           setEvent((prev) => (prev ? { ...prev, photos: updated as CruisingPhoto[] } : prev))
         }
