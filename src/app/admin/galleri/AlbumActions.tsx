@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
-import { Plus, Trash2, ImageIcon, Upload, Eye } from "lucide-react";
+import { Plus, Trash2, ImageIcon, Upload, Eye, Pencil, Check, X } from "lucide-react";
 
 interface AlbumItem {
   id: string;
@@ -35,6 +35,8 @@ export function AlbumActions({
   const [eventId, setEventId] = useState("");
   const [creating, setCreating] = useState(false);
   const [uploadingAlbumId, setUploadingAlbumId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -59,13 +61,27 @@ export function AlbumActions({
   }
 
   async function handleDelete(albumId: string) {
-    if (!confirm("Er du sikker? Alle bilder i albumet slettes.")) return;
+    if (!confirm("Er du sikker? Alle bilder og videoer i albumet slettes permanent.")) return;
     await fetch("/api/admin/galleri", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: albumId }),
     });
     router.refresh();
+  }
+
+  async function handleRename(albumId: string) {
+    if (!editTitle.trim()) return;
+    const res = await fetch("/api/admin/galleri", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: albumId, title: editTitle.trim() }),
+    });
+    if (res.ok) {
+      setEditingId(null);
+      setEditTitle("");
+      router.refresh();
+    }
   }
 
   async function handleUpload(albumId: string, files: FileList) {
@@ -127,8 +143,35 @@ export function AlbumActions({
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
                   <ImageIcon className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">{album.title}</p>
+                  <div className="min-w-0">
+                    {editingId === album.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="h-7 w-36 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleRename(album.id);
+                            if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
+                          }}
+                        />
+                        <button
+                          onClick={() => handleRename(album.id)}
+                          className="rounded p-0.5 text-green-400 hover:bg-green-400/10"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => { setEditingId(null); setEditTitle(""); }}
+                          className="rounded p-0.5 text-muted-foreground hover:bg-muted"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="font-medium">{album.title}</p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {album.photoCount} bilder
                     </p>
@@ -141,14 +184,27 @@ export function AlbumActions({
                   </div>
                 </div>
                 {album.type === "gallery" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(album.id)}
-                    className="text-red-400 hover:text-red-300"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingId(album.id);
+                        setEditTitle(album.title);
+                      }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(album.id)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 )}
               </div>
               <div className="mt-3 flex gap-2">
