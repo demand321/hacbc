@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Camera } from "lucide-react";
+import { AdminGalleryUpload } from "./AdminGalleryUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +20,13 @@ interface GalleryItem {
   photoCount: number;
   href: string;
   date: Date;
+  isCruising: boolean;
 }
 
 export default async function GalleriPage() {
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user?.role === "ADMIN";
+
   const [albums, cruisingEvents] = await Promise.all([
     prisma.album.findMany({
       orderBy: { createdAt: "desc" },
@@ -54,6 +61,7 @@ export default async function GalleriPage() {
       photoCount: a._count.photos,
       href: `/galleri/${a.id}`,
       date: a.createdAt,
+      isCruising: false,
     })),
     ...cruisingEvents.map((e) => ({
       id: `cruising-${e.id}`,
@@ -62,6 +70,7 @@ export default async function GalleriPage() {
       photoCount: e._count.photos,
       href: `/galleri/cruising-${e.id}`,
       date: e.date,
+      isCruising: true,
     })),
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
@@ -98,6 +107,9 @@ export default async function GalleriPage() {
                     <div className="flex h-full w-full items-center justify-center bg-muted">
                       <Camera className="h-12 w-12 text-muted-foreground/50" />
                     </div>
+                  )}
+                  {isAdmin && !item.isCruising && (
+                    <AdminGalleryUpload albumId={item.id} />
                   )}
                   <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
                     {item.photoCount} bilder
