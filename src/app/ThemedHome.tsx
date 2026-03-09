@@ -898,21 +898,19 @@ function DesertLayout({ nextEvent }: ThemedHomeProps) {
         </section>
       )}
 
-      {/* Features - Horizontal scroll strip */}
+      {/* Features - Grid */}
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="mb-12 font-[family-name:var(--font-heading)] text-2xl font-[var(--heading-weight)] uppercase tracking-[0.15em]">
             Utforsk
           </h2>
-        </div>
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex gap-0 min-w-max">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, i) => (
               <Link key={feature.href} href={feature.href} className="group">
                 <div
-                  className="flex h-48 w-80 flex-col justify-end border-r p-8 transition-all duration-500 hover:bg-card/50"
+                  className="flex h-48 flex-col justify-end rounded-lg border p-8 transition-all duration-500 hover:bg-card/50"
                   style={{
-                    borderColor: "rgba(217, 119, 6, 0.1)",
+                    borderColor: "rgba(217, 119, 6, 0.15)",
                     background: i % 2 === 0 ? "rgba(35, 24, 16, 0.3)" : "transparent",
                   }}
                 >
@@ -922,8 +920,6 @@ function DesertLayout({ nextEvent }: ThemedHomeProps) {
                 </div>
               </Link>
             ))}
-            {/* Extra empty panel for breathing room */}
-            <div className="w-40 flex-shrink-0" />
           </div>
         </div>
       </section>
