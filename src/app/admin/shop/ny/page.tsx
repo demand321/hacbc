@@ -104,8 +104,9 @@ export default function CreateEditProductPage() {
       router.push("/admin/shop");
       router.refresh();
     } else {
+      const errData = await res.json().catch(() => ({}));
       setLoading(false);
-      alert("Noe gikk galt. Prøv igjen.");
+      alert(errData.error || "Noe gikk galt. Prøv igjen.");
     }
   }
 

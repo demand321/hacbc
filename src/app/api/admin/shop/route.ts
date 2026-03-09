@@ -35,20 +35,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const body = await req.json();
+  try {
+    const body = await req.json();
 
-  const product = await prisma.product.create({
-    data: {
-      name: body.name,
-      description: body.description || null,
-      price: body.price,
-      imageUrls: body.imageUrls ?? [],
-      sizes: body.sizes ?? [],
-      inStock: body.inStock ?? true,
-    },
-  });
+    const product = await prisma.product.create({
+      data: {
+        name: body.name,
+        description: body.description || null,
+        price: body.price,
+        imageUrls: body.imageUrls ?? [],
+        sizes: body.sizes ?? [],
+        inStock: body.inStock ?? true,
+      },
+    });
 
-  return NextResponse.json(product);
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error("POST /api/admin/shop error:", error);
+    return NextResponse.json({ error: "Kunne ikke opprette produkt" }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest) {
@@ -56,20 +61,25 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const body = await req.json();
-  const { id, ...data } = body;
+  try {
+    const body = await req.json();
+    const { id, ...data } = body;
 
-  const product = await prisma.product.update({
-    where: { id },
-    data: {
-      name: data.name,
-      description: data.description ?? undefined,
-      price: data.price,
-      imageUrls: data.imageUrls ?? undefined,
-      sizes: data.sizes ?? undefined,
-      inStock: data.inStock ?? undefined,
-    },
-  });
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description ?? undefined,
+        price: data.price,
+        imageUrls: data.imageUrls ?? undefined,
+        sizes: data.sizes ?? undefined,
+        inStock: data.inStock ?? undefined,
+      },
+    });
 
-  return NextResponse.json(product);
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error("PATCH /api/admin/shop error:", error);
+    return NextResponse.json({ error: "Kunne ikke oppdatere produkt" }, { status: 500 });
+  }
 }
