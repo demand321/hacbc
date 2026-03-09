@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
-import { Users, Calendar, ShoppingBag, Image, Route, FileText } from "lucide-react";
+import { Users, Calendar, ShoppingBag, Image, Route, FileText, Files } from "lucide-react";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard", icon: FileText },
@@ -11,6 +11,7 @@ const adminLinks = [
   { href: "/admin/shop", label: "Klubbshop", icon: ShoppingBag },
   { href: "/admin/galleri", label: "Galleri", icon: Image },
   { href: "/admin/cruising", label: "Cruising", icon: Route },
+  { href: "/admin/dokumenter", label: "Dokumenter", icon: Files },
 ];
 
 export default async function AdminLayout({

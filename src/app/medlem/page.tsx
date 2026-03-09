@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Car, Camera, Mail, Users } from "lucide-react";
+import { Car, Camera, Mail, Users, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +37,12 @@ export default async function MemberDashboard() {
       href: "/medlem/meldinger",
       description: "Send og motta meldinger",
       highlight: unreadCount > 0,
+    },
+    {
+      label: "Dokumenter",
+      icon: FileText,
+      href: "/medlem/dokumenter",
+      description: "Vedtekter, referater og andre dokumenter",
     },
     {
       label: "Medlemsliste",
