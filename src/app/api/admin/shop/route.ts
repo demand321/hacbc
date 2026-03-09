@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
         imageUrls: body.imageUrls ?? [],
         sizes: body.sizes ?? [],
         variants: body.variants ?? [],
+        allVariants: body.allVariants ?? [],
         inStock: body.inStock ?? true,
       },
     });
@@ -81,6 +82,7 @@ export async function PATCH(req: NextRequest) {
         imageUrls: data.imageUrls ?? undefined,
         sizes: data.sizes ?? [],
         variants: data.variants ?? [],
+        allVariants: data.allVariants ?? [],
         inStock: data.inStock ?? undefined,
       },
     });

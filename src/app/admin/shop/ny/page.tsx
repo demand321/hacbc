@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const COMMON_SIZES = ["One Size", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
 
@@ -23,6 +23,7 @@ export default function CreateEditProductPage() {
     imageUrls: "",
     sizes: [] as string[],
     variants: [] as string[],
+    allVariants: [] as string[],
     inStock: true,
   });
   const [newVariant, setNewVariant] = useState("");
@@ -33,13 +34,18 @@ export default function CreateEditProductPage() {
       const res = await fetch(`/api/admin/shop?id=${editId}`);
       if (res.ok) {
         const product = await res.json();
+        const activeVariants = product.variants ?? [];
+        const allDefined = product.allVariants ?? [];
+        // allVariants includes both active and inactive — merge to be safe
+        const merged = Array.from(new Set([...allDefined, ...activeVariants]));
         setForm({
           name: product.name ?? "",
           description: product.description ?? "",
           priceKr: String(product.price / 100),
           imageUrls: (product.imageUrls ?? []).join("\n"),
           sizes: product.sizes ?? [],
-          variants: product.variants ?? [],
+          variants: activeVariants,
+          allVariants: merged,
           inStock: product.inStock ?? true,
         });
       }
@@ -57,19 +63,24 @@ export default function CreateEditProductPage() {
     }));
   }
 
-  function addVariant() {
-    const v = newVariant.trim();
-    if (v && !form.variants.includes(v)) {
-      setForm((prev) => ({ ...prev, variants: [...prev.variants, v] }));
-    }
-    setNewVariant("");
-  }
-
-  function removeVariant(variant: string) {
+  function toggleVariant(variant: string) {
     setForm((prev) => ({
       ...prev,
-      variants: prev.variants.filter((v) => v !== variant),
+      variants: prev.variants.includes(variant)
+        ? prev.variants.filter((v) => v !== variant)
+        : [...prev.variants, variant],
     }));
+  }
+
+  function addVariant() {
+    const v = newVariant.trim();
+    if (!v) return;
+    setForm((prev) => ({
+      ...prev,
+      allVariants: prev.allVariants.includes(v) ? prev.allVariants : [...prev.allVariants, v],
+      variants: prev.variants.includes(v) ? prev.variants : [...prev.variants, v],
+    }));
+    setNewVariant("");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -90,6 +101,7 @@ export default function CreateEditProductPage() {
       imageUrls,
       sizes: form.sizes,
       variants: form.variants,
+      allVariants: form.allVariants,
       inStock: form.inStock,
     };
 
@@ -157,7 +169,7 @@ export default function CreateEditProductPage() {
         <div>
           <Label>Størrelser</Label>
           <p className="mb-2 text-xs text-muted-foreground">
-            Velg hvilke størrelser produktet finnes i. Kunden velger én.
+            Klikk for å aktivere/deaktivere. Aktive størrelser vises for kunden.
           </p>
           <div className="flex flex-wrap gap-2">
             {COMMON_SIZES.map((size) => (
@@ -175,31 +187,29 @@ export default function CreateEditProductPage() {
               </button>
             ))}
           </div>
-          {form.sizes.length === 0 && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Ingen størrelser valgt — kunden velger ikke størrelse.
-            </p>
-          )}
         </div>
 
         {/* Variants */}
         <div>
-          <Label>Varianter (valgfritt)</Label>
+          <Label>Varianter</Label>
           <p className="mb-2 text-xs text-muted-foreground">
-            Egendefinerte valg, f.eks. &quot;Logo på oppbrett&quot;, &quot;Logo foran&quot;. Kunden velger én.
+            Klikk for å aktivere/deaktivere. Aktive varianter vises for kunden.
           </p>
-          {form.variants.length > 0 && (
+          {form.allVariants.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
-              {form.variants.map((variant) => (
-                <span
+              {form.allVariants.map((variant) => (
+                <button
                   key={variant}
-                  className="flex items-center gap-1.5 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-sm"
+                  type="button"
+                  onClick={() => toggleVariant(variant)}
+                  className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                    form.variants.includes(variant)
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
                 >
                   {variant}
-                  <button type="button" onClick={() => removeVariant(variant)}>
-                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                  </button>
-                </span>
+                </button>
               ))}
             </div>
           )}
