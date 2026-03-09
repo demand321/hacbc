@@ -145,6 +145,7 @@ export default function CruisingMap({
       zoom={12}
       bounds={bounds}
       scrollWheelZoom={true}
+      className="z-0"
       style={{ height: "500px", width: "100%" }}
     >
       <TileLayer

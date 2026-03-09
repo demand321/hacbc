@@ -202,6 +202,7 @@ export default function RouteEditor({
           center={center}
           zoom={waypoints.length > 0 ? 12 : 11}
           scrollWheelZoom={true}
+          className="z-0"
           style={{ height: "450px", width: "100%" }}
         >
           <TileLayer
