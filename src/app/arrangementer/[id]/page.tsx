@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
+  ImagePlus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,11 @@ export default function EventDetailPage({
   const [signupError, setSignupError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [mySignupId, setMySignupId] = useState<string | null>(null);
+
+  // Photo upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadCaption, setUploadCaption] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -277,6 +283,39 @@ export default function EventDetailPage({
         );
       }
     } catch {}
+  };
+
+  const handleUploadPhoto = async (file: File) => {
+    if (!signupSuccess && !isLoggedIn) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      if (mySignupId) form.append("signupId", mySignupId);
+      if (uploadCaption.trim()) form.append("caption", uploadCaption.trim());
+
+      const res = await fetch(`/api/arrangementer/${eventId}/photos`, {
+        method: "POST",
+        body: form,
+      });
+      if (res.ok) {
+        const photo = await res.json();
+        photo.likes = photo.likes || [];
+        photo.comments = photo.comments || [];
+        setEvent((prev) =>
+          prev ? { ...prev, photos: [...prev.photos, photo] } : prev
+        );
+        setUploadCaption("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Opplasting feilet");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSendChat = async () => {
@@ -453,13 +492,59 @@ export default function EventDetailPage({
         </div>
       )}
 
-      {/* Photo gallery */}
-      {event.photos.length > 0 && (
+      {/* Photo gallery + upload */}
+      {(event.photos.length > 0 || signupSuccess) && (
         <div className="mb-8">
           <h2 className="mb-4 flex items-center gap-2 font-[family-name:var(--font-heading)] text-xl font-bold uppercase">
             <Camera className="h-5 w-5 text-primary" />
-            Bilder ({event.photos.length})
+            Bilder
+            {event.photos.length > 0 && (
+              <span className="text-base font-normal text-muted-foreground">
+                ({event.photos.length})
+              </span>
+            )}
           </h2>
+
+          {/* Upload area for participants */}
+          {signupSuccess && isLoggedIn && (
+            <div className="mb-4 rounded-lg border border-dashed border-border p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1">
+                  <Label htmlFor="photo-caption" className="mb-1 text-sm">
+                    Bildetekst (valgfritt)
+                  </Label>
+                  <Input
+                    id="photo-caption"
+                    value={uploadCaption}
+                    onChange={(e) => setUploadCaption(e.target.value)}
+                    placeholder="Beskriv bildet..."
+                  />
+                </div>
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadPhoto(file);
+                    }}
+                  />
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    variant="outline"
+                  >
+                    <ImagePlus className="mr-2 h-4 w-4" />
+                    {uploading ? "Laster opp..." : "Last opp bilde"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {event.photos.length > 0 ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
             {event.photos.map((photo, idx) => (
               <button
@@ -489,6 +574,11 @@ export default function EventDetailPage({
               </button>
             ))}
           </div>
+          ) : signupSuccess ? (
+            <p className="text-sm text-muted-foreground">
+              Ingen bilder ennå. Vær den første til å dele!
+            </p>
+          ) : null}
         </div>
       )}
 
