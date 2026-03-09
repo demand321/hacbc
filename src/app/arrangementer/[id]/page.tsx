@@ -18,6 +18,7 @@ import {
   ChevronUp,
   Heart,
   ImagePlus,
+  Play,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -524,7 +525,7 @@ export default function EventDetailPage({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -534,7 +535,7 @@ export default function EventDetailPage({
                   <input
                     id="camera-input"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     capture="environment"
                     className="hidden"
                     onChange={(e) => {
@@ -571,11 +572,28 @@ export default function EventDetailPage({
                 onClick={() => setSelectedPhotoIndex(idx)}
                 className="group relative aspect-square overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <img
-                  src={photo.url}
-                  alt={photo.caption || `Bilde ${idx + 1}`}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
+                {/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(photo.url) ? (
+                  <>
+                    <video
+                      src={photo.url}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="rounded-full bg-black/60 p-3">
+                        <Play className="h-6 w-6 fill-white text-white" />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={photo.url}
+                    alt={photo.caption || `Bilde ${idx + 1}`}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                )}
                 <div className="absolute bottom-1 left-1 flex gap-1.5">
                   {photo.likes.length > 0 && (
                     <span className="flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">

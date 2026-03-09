@@ -19,6 +19,7 @@ import {
   ChevronUp,
   Heart,
   ImagePlus,
+  Play,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -473,7 +474,7 @@ export default function CruisingDetailPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -483,7 +484,7 @@ export default function CruisingDetailPage() {
                   <input
                     id="cruising-camera-input"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     capture="environment"
                     className="hidden"
                     onChange={(e) => {
@@ -521,11 +522,28 @@ export default function CruisingDetailPage() {
                   onClick={() => setSelectedPhotoIndex(event.photos.indexOf(photo))}
                 >
                   <div className="relative overflow-hidden rounded-lg border border-border">
-                    <img
-                      src={photo.url}
-                      alt={photo.comment || "Cruising-bilde"}
-                      className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
-                    />
+                    {/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(photo.url) ? (
+                      <>
+                        <video
+                          src={photo.url}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="aspect-square w-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="rounded-full bg-black/60 p-3">
+                            <Play className="h-6 w-6 fill-white text-white" />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <img
+                        src={photo.url}
+                        alt={photo.comment || "Cruising-bilde"}
+                        className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    )}
                     <div className="absolute bottom-1 left-1 flex gap-1.5">
                       {photo.likes.length > 0 && (
                         <span className="flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">

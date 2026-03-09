@@ -10,7 +10,8 @@ const supabase = createClient(
 );
 
 const BUCKET = "uploads";
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 
 export async function POST(
   req: NextRequest,
@@ -25,11 +26,17 @@ export async function POST(
   if (!file) {
     return NextResponse.json({ error: "Ingen fil valgt" }, { status: 400 });
   }
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "Maks 10MB" }, { status: 400 });
+  const isImage = file.type.startsWith("image/");
+  const isVideo = file.type.startsWith("video/");
+  if (!isImage && !isVideo) {
+    return NextResponse.json({ error: "Kun bilder og video" }, { status: 400 });
   }
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json({ error: "Kun bilder" }, { status: 400 });
+  const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+  if (file.size > maxSize) {
+    return NextResponse.json(
+      { error: isVideo ? "Maks 100MB for video" : "Maks 10MB for bilder" },
+      { status: 400 }
+    );
   }
 
   // Verify participant

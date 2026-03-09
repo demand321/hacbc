@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Camera } from "lucide-react";
-import { AdminGalleryUpload } from "./AdminGalleryUpload";
+import { AdminGalleryUpload, AdminCreateAlbum } from "./AdminGalleryUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -79,9 +79,12 @@ export default async function GalleriPage() {
       <h1 className="font-[family-name:var(--font-heading)] text-4xl font-bold uppercase tracking-tight sm:text-5xl">
         Foto<span className="text-hacbc-red">galleri</span>
       </h1>
-      <p className="mt-4 text-muted-foreground">
-        Bilder fra treff, arrangementer og cruising.
-      </p>
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-muted-foreground">
+          Bilder fra treff, arrangementer og cruising.
+        </p>
+        {isAdmin && <AdminCreateAlbum />}
+      </div>
 
       {items.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center text-center">
