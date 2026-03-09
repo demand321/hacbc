@@ -66,8 +66,8 @@ export default async function AdminShopPage() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{(product.price / 100).toFixed(0)} kr</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {product.sizes.length > 0 || product.variants.length > 0
-                      ? [...product.sizes, ...product.variants].join(", ")
+                    {[...(product.sizes ?? []), ...(product.variants ?? [])].length > 0
+                      ? [...(product.sizes ?? []), ...(product.variants ?? [])].join(", ")
                       : "—"}
                   </TableCell>
                   <TableCell>
