@@ -13,6 +13,7 @@ export default async function AdminMembersPage() {
       phone: true,
       role: true,
       memberStatus: true,
+      mustChangePassword: true,
       memberSince: true,
       createdAt: true,
     },

@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X, Shield, UserPlus } from "lucide-react";
+import { Check, X, Shield, UserPlus, KeyRound } from "lucide-react";
 
 type User = {
   id: string;
@@ -23,6 +23,7 @@ type User = {
   phone: string | null;
   role: string;
   memberStatus: string;
+  mustChangePassword: boolean;
   memberSince: Date | null;
   createdAt: Date;
 };
@@ -37,6 +38,8 @@ export function MemberManagement({ users }: { users: User[] }) {
   const [addPassword, setAddPassword] = useState("");
   const [addError, setAddError] = useState("");
   const [addSaving, setAddSaving] = useState(false);
+  const [resetUserId, setResetUserId] = useState<string | null>(null);
+  const [resetPassword, setResetPassword] = useState("");
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
@@ -84,6 +87,20 @@ export function MemberManagement({ users }: { users: User[] }) {
     router.refresh();
   }
 
+  async function handleResetPassword(userId: string) {
+    if (!resetPassword || resetPassword.length < 4) return;
+    setLoading(userId);
+    await fetch("/api/admin/medlemmer", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, action: "reset-password", password: resetPassword }),
+    });
+    setResetUserId(null);
+    setResetPassword("");
+    setLoading(null);
+    router.refresh();
+  }
+
   const pending = users.filter((u) => u.memberStatus === "PENDING");
   const approved = users.filter((u) => u.memberStatus === "APPROVED");
 
@@ -112,8 +129,19 @@ export function MemberManagement({ users }: { users: User[] }) {
               <Input id="addPhone" value={addPhone} onChange={(e) => setAddPhone(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="addPassword">Passord * (min 8 tegn)</Label>
-              <Input id="addPassword" type="password" minLength={8} value={addPassword} onChange={(e) => setAddPassword(e.target.value)} required />
+              <Label htmlFor="addPassword">Midlertidig passord *</Label>
+              <Input
+                id="addPassword"
+                type="text"
+                minLength={4}
+                value={addPassword}
+                onChange={(e) => setAddPassword(e.target.value)}
+                required
+                placeholder="F.eks. hacbc2025"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Medlemmet må bytte passord ved første innlogging.
+              </p>
             </div>
             {addError && <p className="text-sm text-destructive">{addError}</p>}
             <div className="flex gap-2">
@@ -197,7 +225,14 @@ export function MemberManagement({ users }: { users: User[] }) {
           <TableBody>
             {approved.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="font-medium">
+                  {user.name}
+                  {user.mustChangePassword && (
+                    <span className="ml-2 text-xs text-amber-400">
+                      (har ikke byttet passord)
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge
@@ -212,26 +247,66 @@ export function MemberManagement({ users }: { users: User[] }) {
                     : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  {user.role !== "ADMIN" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAction(user.id, "make-admin")}
-                      disabled={loading === user.id}
-                    >
-                      <Shield className="mr-1 h-4 w-4" />
-                      Gjør admin
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleAction(user.id, "remove-admin")}
-                      disabled={loading === user.id}
-                    >
-                      Fjern admin
-                    </Button>
-                  )}
+                  <div className="flex justify-end gap-2">
+                    {resetUserId === user.id ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={resetPassword}
+                          onChange={(e) => setResetPassword(e.target.value)}
+                          placeholder="Nytt passord"
+                          className="h-8 w-32 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleResetPassword(user.id);
+                            if (e.key === "Escape") { setResetUserId(null); setResetPassword(""); }
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleResetPassword(user.id)}
+                          disabled={loading === user.id || resetPassword.length < 4}
+                        >
+                          OK
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => { setResetUserId(null); setResetPassword(""); }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setResetUserId(user.id)}
+                      >
+                        <KeyRound className="mr-1 h-3 w-3" />
+                        Reset passord
+                      </Button>
+                    )}
+                    {user.role !== "ADMIN" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAction(user.id, "make-admin")}
+                        disabled={loading === user.id}
+                      >
+                        <Shield className="mr-1 h-4 w-4" />
+                        Gjør admin
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleAction(user.id, "remove-admin")}
+                        disabled={loading === user.id}
+                      >
+                        Fjern admin
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

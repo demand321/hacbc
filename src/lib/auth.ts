@@ -33,15 +33,25 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           memberStatus: user.memberStatus,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = user.role;
         token.memberStatus = user.memberStatus;
+        token.mustChangePassword = user.mustChangePassword;
+      }
+      // Refresh mustChangePassword on session update
+      if (trigger === "update" && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { mustChangePassword: true },
+        });
+        if (dbUser) token.mustChangePassword = dbUser.mustChangePassword;
       }
       return token;
     },
@@ -50,6 +60,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!;
         session.user.role = token.role as string;
         session.user.memberStatus = token.memberStatus as string;
+        session.user.mustChangePassword = token.mustChangePassword as boolean;
       }
       return session;
     },

@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (password.length < 8) {
+  if (password.length < 4) {
     return NextResponse.json(
-      { error: "Passordet må være minst 8 tegn" },
+      { error: "Passordet må være minst 4 tegn" },
       { status: 400 }
     );
   }
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       role: "MEMBER",
       memberStatus: "APPROVED",
       memberSince: new Date(),
+      mustChangePassword: true,
     },
   });
 
@@ -57,7 +58,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const { userId, action } = await req.json();
+  const { userId, action, password } = await req.json();
 
   switch (action) {
     case "approve":
@@ -84,6 +85,20 @@ export async function PATCH(req: NextRequest) {
         data: { role: "MEMBER" },
       });
       break;
+    case "reset-password": {
+      if (!password || password.length < 4) {
+        return NextResponse.json(
+          { error: "Passordet må være minst 4 tegn" },
+          { status: 400 }
+        );
+      }
+      const passwordHash = await bcrypt.hash(password, 12);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash, mustChangePassword: true },
+      });
+      break;
+    }
     default:
       return NextResponse.json({ error: "Ugyldig handling" }, { status: 400 });
   }

@@ -21,5 +21,9 @@ export default async function MemberLayout({
     redirect("/");
   }
 
+  if (session.user.mustChangePassword) {
+    redirect("/bytt-passord");
+  }
+
   return <>{children}</>;
 }
