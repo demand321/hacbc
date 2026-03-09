@@ -65,6 +65,12 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { id, ...data } = body;
 
+    console.log("PATCH /api/admin/shop body:", JSON.stringify(body));
+
+    if (!id) {
+      return NextResponse.json({ error: "Mangler produkt-ID" }, { status: 400 });
+    }
+
     const product = await prisma.product.update({
       where: { id },
       data: {
@@ -72,14 +78,15 @@ export async function PATCH(req: NextRequest) {
         description: data.description ?? undefined,
         price: data.price,
         imageUrls: data.imageUrls ?? undefined,
-        sizes: data.sizes ?? undefined,
+        sizes: data.sizes ?? [],
         inStock: data.inStock ?? undefined,
       },
     });
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error("PATCH /api/admin/shop error:", error);
-    return NextResponse.json({ error: "Kunne ikke oppdatere produkt" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Ukjent feil";
+    console.error("PATCH /api/admin/shop error:", message, error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
