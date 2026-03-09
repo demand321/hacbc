@@ -83,7 +83,6 @@ export default function MemberShopPage() {
 }
 
 function ProductCard({ product }: { product: Product }) {
-  const [name, setName] = useState("");
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -91,10 +90,6 @@ function ProductCard({ product }: { product: Product }) {
   const [open, setOpen] = useState(false);
 
   const handleOrder = async () => {
-    if (!name.trim()) {
-      setError("Navn er påkrevd");
-      return;
-    }
     setSubmitting(true);
     setError("");
     try {
@@ -103,7 +98,6 @@ function ProductCard({ product }: { product: Product }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
-          name: name.trim(),
           comment: comment.trim(),
         }),
       });
@@ -121,7 +115,6 @@ function ProductCard({ product }: { product: Product }) {
 
   const resetAndClose = () => {
     setOpen(false);
-    setName("");
     setComment("");
     setError("");
     setSuccess(false);
@@ -189,15 +182,6 @@ function ProductCard({ product }: { product: Product }) {
               ) : (
                 <>
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="order-name">Navn</Label>
-                      <Input
-                        id="order-name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Ditt navn"
-                      />
-                    </div>
                     <div>
                       <Label htmlFor="order-comment">
                         Kommentar (valgfritt)

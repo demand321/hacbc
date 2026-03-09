@@ -14,11 +14,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { productId, name, comment } = body;
+    const { productId, comment } = body;
 
-    if (!productId || !name?.trim()) {
+    if (!productId) {
       return NextResponse.json(
-        { error: "Produkt-ID og navn er påkrevd" },
+        { error: "Produkt-ID er påkrevd" },
         { status: 400 }
       );
     }
@@ -44,9 +44,7 @@ export async function POST(req: NextRequest) {
     const order = await prisma.order.create({
       data: {
         userId: session.user.id,
-        note: comment?.trim()
-          ? `Bestilt av: ${name.trim()}\n${comment.trim()}`
-          : `Bestilt av: ${name.trim()}`,
+        note: comment?.trim() || null,
         items: {
           create: {
             productId: product.id,
