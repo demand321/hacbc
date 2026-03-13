@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { Car } from "lucide-react";
+import { Car, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +15,19 @@ export default async function KjoretoyPage() {
     where: { published: true },
     orderBy: { createdAt: "desc" },
     include: {
-      owner: { select: { name: true } },
+      owner: { select: { id: true, name: true } },
     },
   });
+
+  // Group by owner
+  const grouped = new Map<string, { name: string; vehicles: typeof vehicles }>();
+  for (const v of vehicles) {
+    const key = v.owner.id;
+    if (!grouped.has(key)) {
+      grouped.set(key, { name: v.owner.name, vehicles: [] });
+    }
+    grouped.get(key)!.vehicles.push(v);
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
@@ -38,40 +48,50 @@ export default async function KjoretoyPage() {
           </p>
         </div>
       ) : (
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {vehicles.map((vehicle: { id: string; make: string; model: string; year: number | null; imageUrls: string[]; owner: { name: string } }) => (
-            <Link key={vehicle.id} href={`/kjoretoy/${vehicle.id}`}>
-              <Card className="group h-full border-border bg-card transition-colors hover:border-hacbc-red/30">
-                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-xl">
-                  {vehicle.imageUrls.length > 0 ? (
-                    <img
-                      src={vehicle.imageUrls[0]}
-                      alt={`${vehicle.make} ${vehicle.model}`}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-muted">
-                      <Car className="h-12 w-12 text-muted-foreground/50" />
-                    </div>
-                  )}
-                </div>
-                <CardContent className="pt-2">
-                  <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold uppercase">
-                    {vehicle.make} {vehicle.model}
-                  </h3>
-                  <div className="mt-1 flex items-center justify-between">
-                    {vehicle.year && (
-                      <span className="text-hacbc-red font-semibold">
-                        {vehicle.year}
-                      </span>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {vehicle.owner.name}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+        <div className="mt-8 space-y-12">
+          {[...grouped.entries()].map(([ownerId, group]) => (
+            <section key={ownerId}>
+              <div className="mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <h2 className="font-[family-name:var(--font-heading)] text-xl font-bold uppercase tracking-tight">
+                  {group.name}
+                </h2>
+                <span className="text-sm text-muted-foreground">
+                  ({group.vehicles.length} {group.vehicles.length === 1 ? "kjøretøy" : "kjøretøy"})
+                </span>
+              </div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {group.vehicles.map((vehicle) => (
+                  <Link key={vehicle.id} href={`/kjoretoy/${vehicle.id}`}>
+                    <Card className="group h-full border-border bg-card transition-colors hover:border-hacbc-red/30">
+                      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-xl">
+                        {vehicle.imageUrls.length > 0 ? (
+                          <img
+                            src={vehicle.imageUrls[0]}
+                            alt={`${vehicle.make} ${vehicle.model}`}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-muted">
+                            <Car className="h-12 w-12 text-muted-foreground/50" />
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="pt-2">
+                        <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold uppercase">
+                          {vehicle.make} {vehicle.model}
+                        </h3>
+                        {vehicle.year && (
+                          <span className="text-hacbc-red font-semibold">
+                            {vehicle.year}
+                          </span>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
