@@ -4,19 +4,41 @@ import ThemedHome from "./ThemedHome";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const nextEvent = await prisma.event.findFirst({
-    where: { isPublished: true, date: { gte: new Date() } },
-    orderBy: { date: "asc" },
-  });
+  const now = new Date();
 
-  const serializedEvent = nextEvent
-    ? {
-        id: nextEvent.id,
-        title: nextEvent.title,
-        date: nextEvent.date.toISOString(),
-        location: nextEvent.location,
-      }
-    : null;
+  const [events, cruisingEvents] = await Promise.all([
+    prisma.event.findMany({
+      where: { isPublished: true, date: { gte: now } },
+      orderBy: { date: "asc" },
+      take: 4,
+      select: { id: true, title: true, date: true, location: true },
+    }),
+    prisma.cruisingEvent.findMany({
+      where: { date: { gte: now } },
+      orderBy: { date: "asc" },
+      take: 4,
+      select: { id: true, title: true, date: true },
+    }),
+  ]);
 
-  return <ThemedHome nextEvent={serializedEvent} />;
+  const upcoming = [
+    ...events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date.toISOString(),
+      location: e.location,
+      type: "event" as const,
+    })),
+    ...cruisingEvents.map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date.toISOString(),
+      location: null,
+      type: "cruising" as const,
+    })),
+  ]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 4);
+
+  return <ThemedHome upcomingEvents={upcoming} />;
 }

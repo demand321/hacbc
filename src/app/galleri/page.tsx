@@ -3,7 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { Camera } from "lucide-react";
+import { Camera, Play } from "lucide-react";
+
+function isVideoUrl(url: string) {
+  return /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
+}
 import { AdminGalleryUpload, AdminCreateAlbum } from "./AdminGalleryUpload";
 
 export const dynamic = "force-dynamic";
@@ -101,11 +105,28 @@ export default async function GalleriPage() {
               <Card className="group h-full border-border bg-card transition-colors hover:border-hacbc-red/30">
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl">
                   {item.coverUrl ? (
-                    <img
-                      src={item.coverUrl}
-                      alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                    isVideoUrl(item.coverUrl) ? (
+                      <div className="relative h-full w-full">
+                        <video
+                          src={item.coverUrl}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="rounded-full bg-black/60 p-3">
+                            <Play className="h-6 w-6 fill-white text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.coverUrl}
+                        alt={item.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    )
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-muted">
                       <Camera className="h-12 w-12 text-muted-foreground/50" />
@@ -115,7 +136,7 @@ export default async function GalleriPage() {
                     <AdminGalleryUpload albumId={item.id} />
                   )}
                   <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
-                    {item.photoCount} bilder
+                    {item.photoCount} {item.photoCount === 1 ? "fil" : "filer"}
                   </div>
                 </div>
                 <CardContent className="pt-2">

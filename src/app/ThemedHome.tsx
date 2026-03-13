@@ -44,21 +44,22 @@ const features: Feature[] = [
   },
 ];
 
-interface NextEvent {
+interface UpcomingEvent {
   id: string;
   title: string;
   date: string;
   location: string | null;
+  type: "event" | "cruising";
 }
 
 interface ThemedHomeProps {
-  nextEvent: NextEvent | null;
+  upcomingEvents: UpcomingEvent[];
 }
 
 // ==============================================
 // GARAGE LAYOUT - Industrial, raw, functional
 // ==============================================
-function GarageLayout({ nextEvent }: ThemedHomeProps) {
+function GarageLayout({ upcomingEvents }: ThemedHomeProps) {
   return (
     <div>
       {/* Hero */}
@@ -96,7 +97,10 @@ function GarageLayout({ nextEvent }: ThemedHomeProps) {
       </section>
 
       {/* Next Event Banner */}
-      <NextEventBanner nextEvent={nextEvent} />
+      <NextEventBanner upcomingEvents={upcomingEvents} />
+
+      {/* Upcoming Events */}
+      <UpcomingEventsList upcomingEvents={upcomingEvents} />
 
       {/* Features - 4 column grid */}
       <section className="mx-auto max-w-7xl px-4 py-16">
@@ -124,7 +128,7 @@ function GarageLayout({ nextEvent }: ThemedHomeProps) {
 // ==============================================
 // ROUTE 66 LAYOUT - Retro roadside, signpost feel
 // ==============================================
-function Route66Layout({ nextEvent }: ThemedHomeProps) {
+function Route66Layout({ upcomingEvents }: ThemedHomeProps) {
   return (
     <div>
       {/* Hero - Full width, tilted signpost feel */}
@@ -193,30 +197,30 @@ function Route66Layout({ nextEvent }: ThemedHomeProps) {
       </section>
 
       {/* Next Event - retro ticket style */}
-      {nextEvent && (
+      {upcomingEvents[0] && (
         <section className="border-y-2 border-border" style={{ borderColor: "rgba(234, 88, 12, 0.2)" }}>
           <div className="mx-auto max-w-7xl px-6 py-8">
-            <Link href={`/arrangementer/${nextEvent.id}`} className="group flex items-center gap-8">
+            <Link href={eventHref(upcomingEvents[0])} className="group flex items-center gap-8">
               <div
                 className="flex h-20 w-20 flex-shrink-0 flex-col items-center justify-center rounded-xl"
                 style={{ background: "var(--accent-color)", color: "white" }}
               >
                 <span className="text-xs font-bold uppercase leading-none">
-                  {new Date(nextEvent.date).toLocaleDateString("nb-NO", { month: "short" })}
+                  {new Date(upcomingEvents[0].date).toLocaleDateString("nb-NO", { month: "short" })}
                 </span>
                 <span className="text-3xl font-bold leading-none">
-                  {new Date(nextEvent.date).getDate()}
+                  {new Date(upcomingEvents[0].date).getDate()}
                 </span>
               </div>
               <div className="flex-1">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                  Neste arrangement
+                  Neste {eventLabel(upcomingEvents[0]).toLowerCase()}
                 </p>
-                <h3 className="mt-1 text-2xl font-bold">{nextEvent.title}</h3>
-                {nextEvent.location && (
+                <h3 className="mt-1 text-2xl font-bold">{upcomingEvents[0].title}</h3>
+                {upcomingEvents[0].location && (
                   <p className="mt-1 flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    {nextEvent.location}
+                    {upcomingEvents[0].location}
                   </p>
                 )}
               </div>
@@ -225,6 +229,9 @@ function Route66Layout({ nextEvent }: ThemedHomeProps) {
           </div>
         </section>
       )}
+
+      {/* Upcoming Events */}
+      <UpcomingEventsList upcomingEvents={upcomingEvents} />
 
       {/* Features - 2 column with large icons on left */}
       <section className="mx-auto max-w-7xl px-6 py-20">
@@ -270,7 +277,7 @@ function Route66Layout({ nextEvent }: ThemedHomeProps) {
 // ==============================================
 // CHROME LAYOUT - Premium showroom, glass-morphism
 // ==============================================
-function ChromeLayout({ nextEvent }: ThemedHomeProps) {
+function ChromeLayout({ upcomingEvents }: ThemedHomeProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -316,27 +323,27 @@ function ChromeLayout({ nextEvent }: ThemedHomeProps) {
       </section>
 
       {/* Next Event - elegant thin banner */}
-      {nextEvent && (
+      {upcomingEvents[0] && (
         <section
           className="border-y"
           style={{ borderColor: "rgba(212, 175, 55, 0.1)" }}
         >
           <div className="mx-auto max-w-5xl px-4 py-5">
             <Link
-              href={`/arrangementer/${nextEvent.id}`}
+              href={eventHref(upcomingEvents[0])}
               className="group flex items-center justify-center gap-6 text-sm"
             >
               <span className="uppercase tracking-[0.3em] text-muted-foreground">Neste</span>
               <span className="h-4 w-px bg-border" />
-              <span className="font-medium">{nextEvent.title}</span>
+              <span className="font-medium">{upcomingEvents[0].title}</span>
               <span className="h-4 w-px bg-border" />
               <span className="text-muted-foreground">
-                {new Date(nextEvent.date).toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}
+                {new Date(upcomingEvents[0].date).toLocaleDateString("nb-NO", { day: "numeric", month: "long" })}
               </span>
-              {nextEvent.location && (
+              {upcomingEvents[0].location && (
                 <>
                   <span className="h-4 w-px bg-border" />
-                  <span className="text-muted-foreground">{nextEvent.location}</span>
+                  <span className="text-muted-foreground">{upcomingEvents[0].location}</span>
                 </>
               )}
               <ArrowRight className="h-4 w-4 text-primary transition-transform group-hover:translate-x-1" />
@@ -344,6 +351,9 @@ function ChromeLayout({ nextEvent }: ThemedHomeProps) {
           </div>
         </section>
       )}
+
+      {/* Upcoming Events */}
+      <UpcomingEventsList upcomingEvents={upcomingEvents} />
 
       {/* Features - Horizontal scrolling glass panels */}
       <section className="py-24">
@@ -421,7 +431,7 @@ function ChromeLayout({ nextEvent }: ThemedHomeProps) {
 // ==============================================
 // MIDNIGHT LAYOUT - Cyberpunk, asymmetric, neon
 // ==============================================
-function MidnightLayout({ nextEvent }: ThemedHomeProps) {
+function MidnightLayout({ upcomingEvents }: ThemedHomeProps) {
   return (
     <div>
       {/* Hero - Asymmetric: text left, neon glow right */}
@@ -482,10 +492,10 @@ function MidnightLayout({ nextEvent }: ThemedHomeProps) {
       </section>
 
       {/* Next Event - neon card */}
-      {nextEvent && (
+      {upcomingEvents[0] && (
         <section className="mx-auto max-w-7xl px-6 py-8">
           <Link
-            href={`/arrangementer/${nextEvent.id}`}
+            href={eventHref(upcomingEvents[0])}
             className="group flex items-center gap-6 rounded-xl border p-6 transition-all duration-300"
             style={{
               borderColor: "rgba(217, 70, 239, 0.15)",
@@ -502,18 +512,18 @@ function MidnightLayout({ nextEvent }: ThemedHomeProps) {
               }}
             >
               <span className="text-[10px] font-bold uppercase leading-none text-primary">
-                {new Date(nextEvent.date).toLocaleDateString("nb-NO", { month: "short" })}
+                {new Date(upcomingEvents[0].date).toLocaleDateString("nb-NO", { month: "short" })}
               </span>
               <span className="text-2xl font-bold leading-none text-primary">
-                {new Date(nextEvent.date).getDate()}
+                {new Date(upcomingEvents[0].date).getDate()}
               </span>
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Neste arrangement</p>
-              <h3 className="mt-1 text-lg font-bold">{nextEvent.title}</h3>
-              {nextEvent.location && (
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Neste {eventLabel(upcomingEvents[0]).toLowerCase()}</p>
+              <h3 className="mt-1 text-lg font-bold">{upcomingEvents[0].title}</h3>
+              {upcomingEvents[0].location && (
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" /> {nextEvent.location}
+                  <MapPin className="h-3 w-3" /> {upcomingEvents[0].location}
                 </p>
               )}
             </div>
@@ -521,6 +531,9 @@ function MidnightLayout({ nextEvent }: ThemedHomeProps) {
           </Link>
         </section>
       )}
+
+      {/* Upcoming Events */}
+      <UpcomingEventsList upcomingEvents={upcomingEvents} />
 
       {/* Features - Stacked cards with neon left-border accent */}
       <section className="mx-auto max-w-7xl px-6 py-16">
@@ -614,7 +627,7 @@ function MidnightLayout({ nextEvent }: ThemedHomeProps) {
 // ==============================================
 // THUNDER LAYOUT - Racing dashboard, angular, bold
 // ==============================================
-function ThunderLayout({ nextEvent }: ThemedHomeProps) {
+function ThunderLayout({ upcomingEvents }: ThemedHomeProps) {
   return (
     <div>
       {/* Hero - Bold diagonal split */}
@@ -720,10 +733,10 @@ function ThunderLayout({ nextEvent }: ThemedHomeProps) {
       </section>
 
       {/* Next Event - angular card */}
-      {nextEvent && (
+      {upcomingEvents[0] && (
         <section className="mx-auto max-w-7xl px-6 py-10">
           <Link
-            href={`/arrangementer/${nextEvent.id}`}
+            href={eventHref(upcomingEvents[0])}
             className="group flex items-center gap-6 p-6 transition-all duration-300"
             style={{
               background: "rgba(59, 130, 246, 0.04)",
@@ -736,18 +749,18 @@ function ThunderLayout({ nextEvent }: ThemedHomeProps) {
               style={{ background: "var(--accent-color)", clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}
             >
               <span className="text-[10px] font-bold uppercase leading-none text-white">
-                {new Date(nextEvent.date).toLocaleDateString("nb-NO", { month: "short" })}
+                {new Date(upcomingEvents[0].date).toLocaleDateString("nb-NO", { month: "short" })}
               </span>
               <span className="text-xl font-bold leading-none text-white">
-                {new Date(nextEvent.date).getDate()}
+                {new Date(upcomingEvents[0].date).getDate()}
               </span>
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Neste arrangement</p>
-              <h3 className="mt-1 text-xl font-bold">{nextEvent.title}</h3>
-              {nextEvent.location && (
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Neste {eventLabel(upcomingEvents[0]).toLowerCase()}</p>
+              <h3 className="mt-1 text-xl font-bold">{upcomingEvents[0].title}</h3>
+              {upcomingEvents[0].location && (
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" /> {nextEvent.location}
+                  <MapPin className="h-3 w-3" /> {upcomingEvents[0].location}
                 </p>
               )}
             </div>
@@ -755,6 +768,9 @@ function ThunderLayout({ nextEvent }: ThemedHomeProps) {
           </Link>
         </section>
       )}
+
+      {/* Upcoming Events */}
+      <UpcomingEventsList upcomingEvents={upcomingEvents} />
 
       {/* About - angular panels */}
       <section className="section-divider border-t border-border">
@@ -809,7 +825,7 @@ function ThunderLayout({ nextEvent }: ThemedHomeProps) {
 // ==============================================
 // DESERT LAYOUT - Cinematic widescreen, film-grain
 // ==============================================
-function DesertLayout({ nextEvent }: ThemedHomeProps) {
+function DesertLayout({ upcomingEvents }: ThemedHomeProps) {
   return (
     <div>
       {/* Hero - Extra tall with parallax feel */}
@@ -862,14 +878,14 @@ function DesertLayout({ nextEvent }: ThemedHomeProps) {
       </section>
 
       {/* Next Event - cinematic thin bar */}
-      {nextEvent && (
+      {upcomingEvents[0] && (
         <section
           className="border-y"
           style={{ borderColor: "rgba(217, 119, 6, 0.15)" }}
         >
           <div className="mx-auto max-w-7xl px-6 py-4">
             <Link
-              href={`/arrangementer/${nextEvent.id}`}
+              href={eventHref(upcomingEvents[0])}
               className="group flex items-center gap-6"
             >
               <span
@@ -879,16 +895,16 @@ function DesertLayout({ nextEvent }: ThemedHomeProps) {
                 Neste
               </span>
               <div className="h-4 w-px" style={{ background: "rgba(217, 119, 6, 0.3)" }} />
-              <span className="font-medium">{nextEvent.title}</span>
+              <span className="font-medium">{upcomingEvents[0].title}</span>
               <div className="h-4 w-px" style={{ background: "rgba(217, 119, 6, 0.3)" }} />
               <span className="text-sm text-muted-foreground">
-                {new Date(nextEvent.date).toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" })}
+                {new Date(upcomingEvents[0].date).toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" })}
               </span>
-              {nextEvent.location && (
+              {upcomingEvents[0].location && (
                 <>
                   <div className="h-4 w-px" style={{ background: "rgba(217, 119, 6, 0.3)" }} />
                   <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3" /> {nextEvent.location}
+                    <MapPin className="h-3 w-3" /> {upcomingEvents[0].location}
                   </span>
                 </>
               )}
@@ -897,6 +913,9 @@ function DesertLayout({ nextEvent }: ThemedHomeProps) {
           </div>
         </section>
       )}
+
+      {/* Upcoming Events */}
+      <UpcomingEventsList upcomingEvents={upcomingEvents} />
 
       {/* Features - Grid */}
       <section className="py-20">
@@ -977,7 +996,18 @@ function DesertLayout({ nextEvent }: ThemedHomeProps) {
 // ==============================================
 // SHARED COMPONENTS
 // ==============================================
-function NextEventBanner({ nextEvent }: { nextEvent: NextEvent | null }) {
+function eventHref(event: UpcomingEvent) {
+  return event.type === "cruising"
+    ? `/cruising/${event.id}`
+    : `/arrangementer/${event.id}`;
+}
+
+function eventLabel(event: UpcomingEvent) {
+  return event.type === "cruising" ? "Cruising" : "Arrangement";
+}
+
+function NextEventBanner({ upcomingEvents }: { upcomingEvents: UpcomingEvent[] }) {
+  const nextEvent = upcomingEvents[0];
   if (!nextEvent) return null;
   const date = new Date(nextEvent.date);
 
@@ -985,7 +1015,7 @@ function NextEventBanner({ nextEvent }: { nextEvent: NextEvent | null }) {
     <section className="border-y border-border bg-card/80">
       <div className="mx-auto max-w-7xl px-4 py-6">
         <Link
-          href={`/arrangementer/${nextEvent.id}`}
+          href={eventHref(nextEvent)}
           className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between"
         >
           <div className="flex items-center gap-4">
@@ -999,7 +1029,7 @@ function NextEventBanner({ nextEvent }: { nextEvent: NextEvent | null }) {
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Neste arrangement
+                Neste {eventLabel(nextEvent).toLowerCase()}
               </p>
               <h3 className="text-lg font-bold">{nextEvent.title}</h3>
               {nextEvent.location && (
@@ -1012,6 +1042,53 @@ function NextEventBanner({ nextEvent }: { nextEvent: NextEvent | null }) {
           </div>
           <ArrowRight className="h-5 w-5 text-muted-foreground" />
         </Link>
+      </div>
+    </section>
+  );
+}
+
+function UpcomingEventsList({ upcomingEvents }: { upcomingEvents: UpcomingEvent[] }) {
+  const rest = upcomingEvents.slice(1);
+  if (rest.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-12">
+      <h2 className="mb-6 font-[family-name:var(--font-heading)] text-2xl font-bold uppercase tracking-tight">
+        Kommende <span className="text-primary">arrangementer</span>
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {rest.map((event) => {
+          const date = new Date(event.date);
+          return (
+            <Link key={`${event.type}-${event.id}`} href={eventHref(event)}>
+              <Card className="group h-full border-border bg-card transition-colors hover:border-primary/30">
+                <CardContent className="flex items-start gap-4 p-5">
+                  <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <span className="text-[10px] font-bold uppercase leading-none">
+                      {date.toLocaleDateString("nb-NO", { month: "short" })}
+                    </span>
+                    <span className="text-xl font-bold leading-none">
+                      {date.getDate()}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      {eventLabel(event)}
+                    </p>
+                    <h3 className="truncate font-semibold">{event.title}</h3>
+                    {event.location && (
+                      <p className="mt-1 flex items-center gap-1 truncate text-sm text-muted-foreground">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        {event.location}
+                      </p>
+                    )}
+                  </div>
+                  <ArrowRight className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -1070,8 +1147,8 @@ const layoutMap: Record<ThemeId, React.FC<ThemedHomeProps>> = {
   desert: DesertLayout,
 };
 
-export default function ThemedHome({ nextEvent }: ThemedHomeProps) {
+export default function ThemedHome({ upcomingEvents }: ThemedHomeProps) {
   const { theme } = useTheme();
   const Layout = layoutMap[theme] || GarageLayout;
-  return <Layout nextEvent={nextEvent} />;
+  return <Layout upcomingEvents={upcomingEvents} />;
 }
