@@ -15,6 +15,9 @@ import {
   Calendar,
   Upload,
   Image as ImageIcon,
+  Pencil,
+  X,
+  Check,
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 
@@ -73,6 +76,8 @@ export default function AdminCruisingPage() {
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [newEvent, setNewEvent] = useState({ date: "", title: "", description: "", routeId: "" });
   const [eventSaving, setEventSaving] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editEvent, setEditEvent] = useState({ date: "", title: "", description: "", routeId: "" });
 
   // --- Tab ---
   const [tab, setTab] = useState<"events" | "routes">("events");
@@ -292,6 +297,52 @@ export default function AdminCruisingPage() {
     setEvents((prev) => prev.filter((e) => e.id !== eventId));
   }
 
+  function startEditEvent(event: CruisingEvent) {
+    setEditingEventId(event.id!);
+    setEditEvent({
+      date: event.date,
+      title: event.title,
+      description: event.description,
+      routeId: event.routeId,
+    });
+  }
+
+  async function handleSaveEvent() {
+    if (!editingEventId || !editEvent.title.trim() || !editEvent.date) {
+      alert("Dato og tittel er påkrevd.");
+      return;
+    }
+    setEventSaving(true);
+
+    const res = await fetch("/api/admin/cruising/events", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: editingEventId, ...editEvent }),
+    });
+
+    if (res.ok) {
+      const saved = await res.json();
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === editingEventId
+            ? {
+                ...e,
+                date: saved.date.slice(0, 10),
+                title: saved.title,
+                description: saved.description ?? "",
+                routeId: saved.routeId ?? "",
+                route: saved.route,
+              }
+            : e
+        )
+      );
+      setEditingEventId(null);
+    } else {
+      alert("Noe gikk galt.");
+    }
+    setEventSaving(false);
+  }
+
   async function handlePhotoUpload(eventId: string, files: FileList) {
     for (const file of Array.from(files)) {
       const formData = new FormData();
@@ -446,8 +497,62 @@ export default function AdminCruisingPage() {
           ) : (
             <div className="space-y-4">
               {events.map((event) => (
-                <Card key={event.id} className="border-border">
+                <Card key={event.id} className={`border-border ${editingEventId === event.id ? "border-primary/30" : ""}`}>
                   <CardContent className="p-4">
+                    {editingEventId === event.id ? (
+                      <div className="space-y-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <Label>Dato *</Label>
+                            <DatePicker
+                              value={editEvent.date}
+                              onChange={(val) => setEditEvent({ ...editEvent, date: val })}
+                              placeholder="Velg dato"
+                            />
+                          </div>
+                          <div>
+                            <Label>Tittel *</Label>
+                            <Input
+                              value={editEvent.title}
+                              onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Rute</Label>
+                          <select
+                            value={editEvent.routeId}
+                            onChange={(e) => setEditEvent({ ...editEvent, routeId: e.target.value })}
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="">Ingen rute valgt</option>
+                            {routes.filter((r) => r.id).map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <Label>Beskrivelse</Label>
+                          <Textarea
+                            rows={2}
+                            value={editEvent.description}
+                            onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleSaveEvent} disabled={eventSaving}>
+                            <Check className="mr-1.5 h-3.5 w-3.5" />
+                            {eventSaving ? "Lagrer..." : "Lagre"}
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingEventId(null)}>
+                            <X className="mr-1.5 h-3.5 w-3.5" />
+                            Avbryt
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold">{event.title}</h3>
@@ -464,15 +569,25 @@ export default function AdminCruisingPage() {
                           <p className="mt-1 text-sm text-muted-foreground">{event.description}</p>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => event.id && handleDeleteEvent(event.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditEvent(event)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => event.id && handleDeleteEvent(event.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
+                    )}
 
                     {/* Photos */}
                     <div className="mt-4">
