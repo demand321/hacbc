@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
+import { Plus, Upload, Trash2, GripVertical } from "lucide-react";
 
 const COMMON_SIZES = ["One Size", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
 
@@ -27,6 +27,7 @@ export default function CreateEditProductPage() {
     inStock: true,
   });
   const [newVariant, setNewVariant] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!editId) return;
@@ -70,6 +71,33 @@ export default function CreateEditProductPage() {
         ? prev.variants.filter((v) => v !== variant)
         : [...prev.variants, variant],
     }));
+  }
+
+  async function handleImageUpload(files: FileList) {
+    setUploading(true);
+    const currentUrls = form.imageUrls
+      .split("\n")
+      .map((u) => u.trim())
+      .filter(Boolean);
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        currentUrls.push(data.url);
+      }
+    }
+
+    setForm((p) => ({ ...p, imageUrls: currentUrls.join("\n") }));
+    setUploading(false);
+  }
+
+  function removeImage(index: number) {
+    const urls = form.imageUrls.split("\n").map((u) => u.trim()).filter(Boolean);
+    urls.splice(index, 1);
+    setForm((p) => ({ ...p, imageUrls: urls.join("\n") }));
   }
 
   function addVariant() {
@@ -239,14 +267,63 @@ export default function CreateEditProductPage() {
           </div>
         </div>
 
+        {/* Images */}
         <div>
-          <Label htmlFor="imageUrls">Bilde-URLer (en per linje)</Label>
-          <Textarea
-            id="imageUrls"
-            rows={3}
-            value={form.imageUrls}
-            onChange={(e) => setForm((p) => ({ ...p, imageUrls: e.target.value }))}
-          />
+          <Label>Bilder</Label>
+          <div className="mt-2 space-y-3">
+            {form.imageUrls.split("\n").map((u) => u.trim()).filter(Boolean).length > 0 && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {form.imageUrls.split("\n").map((u) => u.trim()).filter(Boolean).map((url, i) => (
+                  <div key={i} className="group relative aspect-square overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={url}
+                      alt={`Bilde ${i + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute right-1 top-1 rounded-full bg-black/70 p-1.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={uploading}
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = "image/*";
+                  input.multiple = true;
+                  input.onchange = () => {
+                    if (input.files?.length) handleImageUpload(input.files);
+                  };
+                  input.click();
+                }}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {uploading ? "Laster opp..." : "Last opp bilder"}
+              </Button>
+            </div>
+            <details className="text-sm">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                Eller legg inn URL-er manuelt
+              </summary>
+              <Textarea
+                className="mt-2"
+                rows={3}
+                value={form.imageUrls}
+                onChange={(e) => setForm((p) => ({ ...p, imageUrls: e.target.value }))}
+                placeholder="En URL per linje"
+              />
+            </details>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <input
