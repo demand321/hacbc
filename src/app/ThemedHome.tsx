@@ -9,6 +9,7 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 import type { ThemeId } from "@/lib/themes";
 import type { LucideIcon } from "lucide-react";
 import { useRef } from "react";
+import { useSession } from "next-auth/react";
 
 interface Feature {
   icon: LucideIcon;
@@ -56,6 +57,16 @@ interface ThemedHomeProps {
   upcomingEvents: UpcomingEvent[];
 }
 
+function JoinButton({ size = "default", variant = "default", label = "Bli medlem" }: { size?: "lg" | "default"; variant?: "default" | "outline"; label?: string }) {
+  const { data: session } = useSession();
+  if (session) return null;
+  return (
+    <Button asChild size={size} variant={variant}>
+      <Link href="/registrer">{label}</Link>
+    </Button>
+  );
+}
+
 // ==============================================
 // GARAGE LAYOUT - Industrial, raw, functional
 // ==============================================
@@ -86,9 +97,7 @@ function GarageLayout({ upcomingEvents }: ThemedHomeProps) {
             Hamar-regionen. Bli med på treff, cruising og sosialt samvær.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Button asChild size="lg">
-              <Link href="/registrer">Bli medlem</Link>
-            </Button>
+            <JoinButton size="lg" />
             <Button asChild variant="outline" size="lg">
               <Link href="/arrangementer">Se arrangementer</Link>
             </Button>
@@ -165,9 +174,7 @@ function Route66Layout({ upcomingEvents }: ThemedHomeProps) {
                 Bli med på treff, cruising og sosialt samvær.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <Button asChild size="lg">
-                  <Link href="/registrer">Bli medlem</Link>
-                </Button>
+                <JoinButton size="lg" />
                 <Button asChild variant="outline" size="lg">
                   <Link href="/arrangementer">Se arrangementer</Link>
                 </Button>
@@ -312,9 +319,7 @@ function ChromeLayout({ upcomingEvents }: ThemedHomeProps) {
             Hamar-regionen.
           </p>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-6">
-            <Button asChild size="lg">
-              <Link href="/registrer">Bli medlem</Link>
-            </Button>
+            <JoinButton size="lg" />
             <Button asChild variant="outline" size="lg">
               <Link href="/arrangementer">Arrangementer</Link>
             </Button>
@@ -418,9 +423,7 @@ function ChromeLayout({ upcomingEvents }: ThemedHomeProps) {
             <Button asChild variant="outline">
               <Link href="/cruising">Se cruising-ruter</Link>
             </Button>
-            <Button asChild>
-              <Link href="/registrer">Registrer deg</Link>
-            </Button>
+            <JoinButton label="Registrer deg" />
           </div>
         </div>
       </section>
@@ -475,9 +478,7 @@ function MidnightLayout({ upcomingEvents }: ThemedHomeProps) {
               Bli med på treff, cruising og sosialt samvær.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
-              <Button asChild size="lg">
-                <Link href="/registrer">Bli medlem</Link>
-              </Button>
+              <JoinButton size="lg" />
               <Button asChild variant="outline" size="lg">
                 <Link href="/arrangementer">Se arrangementer</Link>
               </Button>
@@ -614,9 +615,7 @@ function MidnightLayout({ upcomingEvents }: ThemedHomeProps) {
               Er du interessert i amerikanske biler eller motorsykler?
               Vi er alltid åpne for nye medlemmer.
             </p>
-            <Button asChild className="mt-4 w-fit">
-              <Link href="/registrer">Registrer deg</Link>
-            </Button>
+            <JoinButton label="Registrer deg" />
           </div>
         </div>
       </section>
@@ -682,9 +681,7 @@ function ThunderLayout({ upcomingEvents }: ThemedHomeProps) {
               Bli med på treff, cruising og sosialt samvær.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Button asChild size="lg">
-                <Link href="/registrer">Bli medlem</Link>
-              </Button>
+              <JoinButton size="lg" />
               <Button asChild variant="outline" size="lg">
                 <Link href="/arrangementer">Se arrangementer</Link>
               </Button>
@@ -811,9 +808,7 @@ function ThunderLayout({ upcomingEvents }: ThemedHomeProps) {
                 Er du interessert i amerikanske biler eller motorsykler?
                 Vi er alltid åpne for nye medlemmer.
               </p>
-              <Button asChild className="mt-4 w-fit">
-                <Link href="/registrer">Registrer deg</Link>
-              </Button>
+              <JoinButton label="Registrer deg" />
             </div>
           </div>
         </div>
@@ -867,9 +862,7 @@ function DesertLayout({ upcomingEvents }: ThemedHomeProps) {
             Hamar-regionen. Bli med på treff, cruising og sosialt samvær.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Button asChild size="lg">
-              <Link href="/registrer">Bli medlem</Link>
-            </Button>
+            <JoinButton size="lg" />
             <Button asChild variant="outline" size="lg">
               <Link href="/arrangementer">Se arrangementer</Link>
             </Button>
@@ -983,9 +976,7 @@ function DesertLayout({ upcomingEvents }: ThemedHomeProps) {
               Vi er alltid åpne for nye medlemmer. Besøk oss på
               Vandrerhjemmet ved Vikingskipet i Hamar.
             </p>
-            <Button asChild className="mt-6 w-fit">
-              <Link href="/registrer">Registrer deg</Link>
-            </Button>
+            <JoinButton label="Registrer deg" />
           </div>
         </div>
       </section>
@@ -1125,9 +1116,7 @@ function AboutSection() {
               Vi er alltid åpne for nye medlemmer. Besøk oss på
               Vandrerhjemmet ved Vikingskipet i Hamar.
             </p>
-            <Button asChild className="mt-4 w-fit">
-              <Link href="/registrer">Registrer deg</Link>
-            </Button>
+            <JoinButton label="Registrer deg" />
           </div>
         </div>
       </div>
