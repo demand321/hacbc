@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
       address: body.address || null,
       imageUrl: body.imageUrl || null,
       routeId: body.routeId || null,
+      eventType: body.eventType || "GENERAL",
+      isClubEvent: body.isClubEvent ?? false,
       isPublished: body.isPublished ?? false,
     },
   });
@@ -73,6 +75,8 @@ export async function PATCH(req: NextRequest) {
       address: data.address || null,
       imageUrl: data.imageUrl || null,
       routeId: data.routeId !== undefined ? (data.routeId || null) : undefined,
+      eventType: data.eventType || undefined,
+      isClubEvent: data.isClubEvent ?? undefined,
       isPublished: data.isPublished ?? undefined,
     },
   });

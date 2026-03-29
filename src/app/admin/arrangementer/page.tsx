@@ -36,6 +36,7 @@ export default async function AdminEventsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Tittel</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Dato</TableHead>
               <TableHead>Sted</TableHead>
               <TableHead>Publisert</TableHead>
@@ -45,14 +46,34 @@ export default async function AdminEventsPage() {
           <TableBody>
             {events.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Ingen arrangementer ennå.
                 </TableCell>
               </TableRow>
             )}
             {events.map((event) => (
               <TableRow key={event.id}>
-                <TableCell className="font-medium">{event.title}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-2">
+                    {event.title}
+                    {event.isClubEvent && (
+                      <span className="inline-block rounded bg-hacbc-red/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-hacbc-red">
+                        HACBC
+                      </span>
+                    )}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                    event.eventType === "AMCAR" ? "bg-blue-900/30 text-blue-400" :
+                    event.eventType === "VETERAN" ? "bg-amber-900/30 text-amber-400" :
+                    "bg-zinc-800/30 text-zinc-400"
+                  }`}>
+                    {event.eventType === "AMCAR" ? "Am-car" :
+                     event.eventType === "VETERAN" ? "Veteran" :
+                     "Generelt"}
+                  </span>
+                </TableCell>
                 <TableCell>
                   {new Date(event.date).toLocaleDateString("nb-NO", {
                     day: "numeric",

@@ -20,6 +20,8 @@ export default function CreateEventPage() {
     address: "",
     imageUrl: "",
     routeId: "",
+    eventType: "GENERAL",
+    isClubEvent: false,
     isPublished: false,
   });
 
@@ -171,6 +173,29 @@ export default function CreateEventPage() {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <Label htmlFor="eventType">Type arrangement</Label>
+          <select
+            id="eventType"
+            value={form.eventType}
+            onChange={(e) => update("eventType", e.target.value)}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="GENERAL">Generelt</option>
+            <option value="AMCAR">Am-car treff</option>
+            <option value="VETERAN">Veteranbiltreff</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            id="isClubEvent"
+            type="checkbox"
+            checked={form.isClubEvent}
+            onChange={(e) => update("isClubEvent", e.target.checked)}
+            className="h-4 w-4 accent-hacbc-red"
+          />
+          <Label htmlFor="isClubEvent">Klubbarrangement (HACBC)</Label>
         </div>
         <div className="flex items-center gap-2">
           <input

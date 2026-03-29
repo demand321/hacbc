@@ -19,6 +19,13 @@ enum MemberStatus {
   REJECTED
 }
 
+enum EventType {
+  GENERAL
+  AMCAR
+  VETERAN
+  CRUISING
+}
+
 model User {
   id             String       @id @default(cuid())
   email          String       @unique
@@ -79,6 +86,8 @@ model Event {
   imageUrl    String?
   routeId     String?
   route       CruisingRoute? @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  eventType   EventType @default(GENERAL)
+  isClubEvent Boolean   @default(false)
   isPublished Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
