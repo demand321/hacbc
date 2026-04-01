@@ -148,6 +148,26 @@ export default async function ArrangementerPage() {
         Treff, cruising og klubbkvelder.
       </p>
 
+      {/* Legend */}
+      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-4 w-1 rounded-full bg-hacbc-red" />
+          Klubbarrangement
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-4 w-4 rounded-full bg-blue-600" />
+          Am-car
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-4 w-4 rounded-full bg-amber-600" />
+          Veteran
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-4 w-4 rounded-full bg-hacbc-red" />
+          Annet
+        </span>
+      </div>
+
       {/* Upcoming */}
       <section className="mt-10">
         <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold uppercase tracking-tight">
