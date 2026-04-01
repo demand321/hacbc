@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Calendar, Car, Wrench, Star } from "lucide-react";
+import { MapPin, Calendar, Car, Wrench } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -74,21 +74,12 @@ function EventTypeBadge({ eventType }: { eventType: string }) {
   );
 }
 
-function ClubBadge() {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-hacbc-red/30 bg-hacbc-red/10 px-2 py-0.5 text-[11px] font-medium text-hacbc-red">
-      <Star className="h-3 w-3 fill-hacbc-red" />
-      HACBC
-    </span>
-  );
-}
-
 function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
-  const config = EVENT_TYPE_CONFIG[event.eventType] || EVENT_TYPE_CONFIG.GENERAL;
+  const isClub = event.isClubEvent || event.eventType === "CRUISING";
 
   return (
     <Link href={`/arrangementer/${event.id}`}>
-      <Card className={`group h-full border-border bg-card transition-colors hover:border-hacbc-red/30 ${isPast ? "opacity-75 hover:opacity-100" : ""} ${event.isClubEvent ? "ring-1 ring-hacbc-red/20" : ""}`}>
+      <Card className={`group h-full border-border bg-card transition-colors hover:border-hacbc-red/30 ${isPast ? "opacity-75 hover:opacity-100" : ""} ${isClub ? "border-l-4 border-l-hacbc-red" : ""}`}>
         {event.imageUrl && (
           <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-xl">
             <img
@@ -98,7 +89,6 @@ function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
             />
             <div className="absolute left-2 top-2 flex gap-1.5">
               <EventTypeBadge eventType={event.eventType} />
-              {event.isClubEvent && <ClubBadge />}
             </div>
           </div>
         )}
@@ -113,7 +103,6 @@ function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
             {!event.imageUrl && (
               <div className="mt-1 flex gap-1.5">
                 <EventTypeBadge eventType={event.eventType} />
-                {event.isClubEvent && <ClubBadge />}
               </div>
             )}
             <p className="mt-1 text-sm text-muted-foreground">
