@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Calendar, Car, Wrench } from "lucide-react";
+import { MapPin, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -20,34 +20,9 @@ export const metadata = {
   description: "Kommende og tidligere arrangementer",
 };
 
-const EVENT_TYPE_CONFIG: Record<string, { label: string; color: string; bgColor: string; borderColor: string; icon: typeof Car }> = {
-  AMCAR: {
-    label: "Am-car",
-    color: "text-blue-400",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/30",
-    icon: Car,
-  },
-  VETERAN: {
-    label: "Veteran",
-    color: "text-amber-400",
-    bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/30",
-    icon: Wrench,
-  },
-  GENERAL: {
-    label: "Arrangement",
-    color: "text-zinc-400",
-    bgColor: "bg-zinc-500/10",
-    borderColor: "border-zinc-500/30",
-    icon: Calendar,
-  },
-};
-
 function DateBadge({ date, eventType }: { date: Date; eventType: string }) {
   const day = date.getDate();
   const month = date.toLocaleDateString("nb-NO", { month: "short" });
-  const config = EVENT_TYPE_CONFIG[eventType] || EVENT_TYPE_CONFIG.GENERAL;
 
   const bgClass =
     eventType === "AMCAR" ? "bg-blue-600" :
@@ -62,24 +37,12 @@ function DateBadge({ date, eventType }: { date: Date; eventType: string }) {
   );
 }
 
-function EventTypeBadge({ eventType }: { eventType: string }) {
-  const config = EVENT_TYPE_CONFIG[eventType] || EVENT_TYPE_CONFIG.GENERAL;
-  const Icon = config.icon;
-
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${config.color} ${config.bgColor} ${config.borderColor}`}>
-      <Icon className="h-3 w-3" />
-      {config.label}
-    </span>
-  );
-}
-
 function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
   const isClub = event.isClubEvent || event.eventType === "CRUISING";
 
   return (
     <Link href={`/arrangementer/${event.id}`}>
-      <Card className={`group h-full border-border bg-card transition-colors hover:border-hacbc-red/30 ${isPast ? "opacity-75 hover:opacity-100" : ""} ${isClub ? "border-l-4 border-l-hacbc-red" : ""}`}>
+      <Card className={`group h-full border-border bg-card transition-colors hover:border-hacbc-red/30 ${isPast ? "opacity-75 hover:opacity-100" : ""} ${isClub ? "border-l-[5px] border-l-hacbc-red shadow-[inset_0_0_12px_-4px] shadow-hacbc-red/20" : ""}`}>
         {event.imageUrl && (
           <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-xl">
             <img
@@ -87,24 +50,14 @@ function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
               alt={event.title}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            <div className="absolute left-2 top-2 flex gap-1.5">
-              <EventTypeBadge eventType={event.eventType} />
-            </div>
           </div>
         )}
         <CardContent className="flex items-start gap-4 pt-2">
           <DateBadge date={event.date} eventType={event.eventType} />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold uppercase leading-tight">
-                {event.title}
-              </h3>
-            </div>
-            {!event.imageUrl && (
-              <div className="mt-1 flex gap-1.5">
-                <EventTypeBadge eventType={event.eventType} />
-              </div>
-            )}
+            <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold uppercase leading-tight">
+              {event.title}
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {event.date.toLocaleDateString("nb-NO", {
                 weekday: isPast ? undefined : "long",
