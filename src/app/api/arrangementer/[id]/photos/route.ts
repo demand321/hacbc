@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@supabase/supabase-js";
+import { requireApproved, MAX_CAPTION_LENGTH } from "@/lib/auth-helpers";
+import { isMimeAllowed, extFromMime, ALLOWED_VIDEO_TYPES } from "@/lib/upload-security";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,17 +20,15 @@ export async function POST(
   const { id } = await params;
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
-  const signupId = formData.get("signupId") as string | null;
-  const caption = (formData.get("caption") as string | null)?.trim() || null;
+  const caption = ((formData.get("caption") as string | null)?.trim() || "").slice(0, MAX_CAPTION_LENGTH) || null;
 
   if (!file) {
     return NextResponse.json({ error: "Ingen fil valgt" }, { status: 400 });
   }
-  const isImage = file.type.startsWith("image/");
-  const isVideo = file.type.startsWith("video/");
-  if (!isImage && !isVideo) {
-    return NextResponse.json({ error: "Kun bilder og video" }, { status: 400 });
+  if (!isMimeAllowed(file.type, "imageOrVideo")) {
+    return NextResponse.json({ error: "Filtypen er ikke tillatt" }, { status: 400 });
   }
+  const isVideo = ALLOWED_VIDEO_TYPES.has(file.type.toLowerCase());
   const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
   if (file.size > maxSize) {
     return NextResponse.json(
@@ -39,10 +37,9 @@ export async function POST(
     );
   }
 
-  // Verify participant (must be logged in for event photo uploads)
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
+  // Verify participant (must be approved member for event photo uploads)
+  const session = await requireApproved();
+  if (!session) {
     return NextResponse.json(
       { error: "Du må være innlogget for å laste opp bilder" },
       { status: 401 }
@@ -77,8 +74,8 @@ export async function POST(
     });
   }
 
-  // Upload to Supabase Storage
-  const ext = file.name.split(".").pop() || "jpg";
+  // Upload to Supabase Storage — extension from validated MIME
+  const ext = extFromMime(file.type);
   const fileName = `gallery/${album.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 

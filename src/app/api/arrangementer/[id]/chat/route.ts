@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { MAX_MESSAGE_LENGTH } from "@/lib/auth-helpers";
 
 export async function GET(
   req: NextRequest,
@@ -30,8 +31,8 @@ export async function POST(
   const { id } = await params;
   const body = await req.json();
 
-  const signupId = (body.signupId || "").trim();
-  const content = (body.content || "").trim();
+  const signupId = String(body.signupId || "").trim();
+  const content = String(body.content || "").trim().slice(0, MAX_MESSAGE_LENGTH);
 
   if (!signupId || !content) {
     return NextResponse.json({ error: "Mangler data" }, { status: 400 });

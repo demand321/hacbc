@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
+import { requireApproved } from "@/lib/auth-helpers";
+import { isMimeAllowed, extFromMime } from "@/lib/upload-security";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,10 +13,14 @@ const BUCKET = "uploads";
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
+
+  // 30 uploads per user per 10 min
+  const rl = rateLimit(`upload:${session.user.id}`, 30, 10 * 60 * 1000);
+  if (!rl.ok) return rateLimitResponse(rl);
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
@@ -31,16 +36,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!file.type.startsWith("image/")) {
+  if (!isMimeAllowed(file.type, "image")) {
     return NextResponse.json(
-      { error: "Kun bildefiler er tillatt" },
+      { error: "Kun bildefiler er tillatt (jpg, png, webp, gif, heic)" },
       { status: 400 }
     );
   }
 
-  // Generate unique filename
-  const ext = file.name.split(".").pop() || "jpg";
-  const fileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  // Derive extension from validated MIME, never from filename
+  const ext = extFromMime(file.type);
+  const fileName = `avatars/${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);

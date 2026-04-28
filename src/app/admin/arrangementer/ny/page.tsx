@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import { combineDateTime, TIME_OPTIONS } from "@/lib/datetime";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -15,7 +17,9 @@ export default function CreateEventPage() {
     title: "",
     description: "",
     date: "",
+    time: "18:00",
     endDate: "",
+    endTime: "20:00",
     location: "",
     address: "",
     imageUrl: "",
@@ -38,6 +42,10 @@ export default function CreateEventPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.date) {
+      alert("Startdato er påkrevd.");
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/admin/arrangementer", {
@@ -45,8 +53,8 @@ export default function CreateEventPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        date: new Date(form.date).toISOString(),
-        endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
+        date: combineDateTime(form.date, form.time),
+        endDate: form.endDate ? combineDateTime(form.endDate, form.endTime, "20:00") : null,
       }),
     });
 
@@ -61,6 +69,11 @@ export default function CreateEventPage() {
 
   return (
     <div>
+      <datalist id="time-options">
+        {TIME_OPTIONS.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
       <h2 className="mb-6 text-xl font-semibold">Nytt arrangement</h2>
       <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
         <div>
@@ -82,24 +95,50 @@ export default function CreateEventPage() {
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="date">Startdato *</Label>
-            <Input
-              id="date"
-              type="datetime-local"
-              required
-              value={form.date}
-              onChange={(e) => update("date", e.target.value)}
-            />
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div>
+              <Label>Startdato *</Label>
+              <DatePicker
+                value={form.date}
+                onChange={(val) => update("date", val)}
+                placeholder="Velg dato"
+              />
+            </div>
+            <div>
+              <Label htmlFor="time">Klokkeslett</Label>
+              <Input
+                id="time"
+                list="time-options"
+                inputMode="numeric"
+                placeholder="18:00"
+                maxLength={5}
+                value={form.time}
+                onChange={(e) => update("time", e.target.value)}
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="endDate">Sluttdato</Label>
-            <Input
-              id="endDate"
-              type="datetime-local"
-              value={form.endDate}
-              onChange={(e) => update("endDate", e.target.value)}
-            />
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div>
+              <Label>Sluttdato</Label>
+              <DatePicker
+                value={form.endDate}
+                onChange={(val) => update("endDate", val)}
+                placeholder="Valgfritt"
+              />
+            </div>
+            <div>
+              <Label htmlFor="endTime">Klokkeslett</Label>
+              <Input
+                id="endTime"
+                list="time-options"
+                inputMode="numeric"
+                placeholder="20:00"
+                maxLength={5}
+                value={form.endTime}
+                onChange={(e) => update("endTime", e.target.value)}
+                disabled={!form.endDate}
+              />
+            </div>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

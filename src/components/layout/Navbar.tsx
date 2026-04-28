@@ -11,9 +11,8 @@ import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
 
 const publicLinks = [
   { href: "/kjoretoy", label: "Kjøretøy" },
-  { href: "/arrangementer", label: "Arrangementer" },
+  { href: "/arrangementer", label: "Eventer" },
   { href: "/galleri", label: "Galleri" },
-  { href: "/cruising", label: "Cruising" },
 ];
 
 const memberLinks = [

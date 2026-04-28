@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (password.length < 4) {
+  if (typeof password !== "string" || password.length < 8) {
     return NextResponse.json(
-      { error: "Passordet må være minst 4 tegn" },
+      { error: "Passordet må være minst 8 tegn" },
       { status: 400 }
     );
   }
@@ -82,12 +82,20 @@ export async function PATCH(req: NextRequest) {
         data: { role: "ADMIN" },
       });
       break;
-    case "remove-admin":
+    case "remove-admin": {
+      const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+      if (adminCount <= 1) {
+        return NextResponse.json(
+          { error: "Kan ikke fjerne den siste admin-brukeren" },
+          { status: 400 }
+        );
+      }
       await prisma.user.update({
         where: { id: userId },
         data: { role: "MEMBER" },
       });
       break;
+    }
     case "update-user": {
       if (!name || !email) {
         return NextResponse.json(
@@ -116,9 +124,9 @@ export async function PATCH(req: NextRequest) {
       break;
     }
     case "reset-password": {
-      if (!password || password.length < 4) {
+      if (typeof password !== "string" || password.length < 8) {
         return NextResponse.json(
-          { error: "Passordet må være minst 4 tegn" },
+          { error: "Passordet må være minst 8 tegn" },
           { status: 400 }
         );
       }

@@ -24,5 +24,6 @@ declare module "next-auth/jwt" {
     role: string;
     memberStatus: string;
     mustChangePassword: boolean;
+    refreshedAt?: number;
   }
 }

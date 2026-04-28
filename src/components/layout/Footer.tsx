@@ -25,7 +25,7 @@ export function Footer() {
                 href="/arrangementer"
                 className="text-muted-foreground hover:text-foreground"
               >
-                Arrangementer
+                Eventer
               </Link>
               <Link
                 href="/kjoretoy"

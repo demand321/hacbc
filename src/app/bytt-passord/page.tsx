@@ -12,6 +12,7 @@ import { Lock } from "lucide-react";
 export default function ChangePasswordPage() {
   const { data: session, update } = useSession();
   const router = useRouter();
+  const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
@@ -25,10 +26,16 @@ export default function ChangePasswordPage() {
     );
   }
 
+  const isFirstLogin = session.user.mustChangePassword;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
+    if (!isFirstLogin && !currentPassword) {
+      setError("Nåværende passord er påkrevd");
+      return;
+    }
     if (password.length < 8) {
       setError("Passordet må være minst 8 tegn");
       return;
@@ -42,11 +49,13 @@ export default function ChangePasswordPage() {
     const res = await fetch("/api/auth/bytt-passord", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newPassword: password }),
+      body: JSON.stringify({
+        currentPassword: isFirstLogin ? undefined : currentPassword,
+        newPassword: password,
+      }),
     });
 
     if (res.ok) {
-      // Update the session to clear mustChangePassword
       await update();
       router.push("/medlem");
     } else {
@@ -66,11 +75,26 @@ export default function ChangePasswordPage() {
               Bytt passord
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Du må velge et nytt passord før du kan fortsette.
+              {isFirstLogin
+                ? "Du må velge et nytt passord før du kan fortsette."
+                : "Skriv inn nåværende passord og velg et nytt."}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isFirstLogin && (
+              <div>
+                <Label htmlFor="currentPassword">Nåværende passord</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+              </div>
+            )}
             <div>
               <Label htmlFor="password">Nytt passord (min 8 tegn)</Label>
               <Input
@@ -78,6 +102,7 @@ export default function ChangePasswordPage() {
                 type="password"
                 required
                 minLength={8}
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -88,6 +113,7 @@ export default function ChangePasswordPage() {
                 id="confirm"
                 type="password"
                 required
+                autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
               />

@@ -68,9 +68,9 @@ export function DocumentActions({ documents }: { documents: DocumentItem[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileName: file.name,
+          kind: "documents",
           contentType: file.type,
-          folder: "documents",
+          size: file.size,
         }),
       });
       if (signedRes.ok) {

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApproved } from "@/lib/auth-helpers";
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
@@ -28,12 +27,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { make, model, year, description, specs, imageUrls, published } = body;
 
   if (!make || !model) {
@@ -43,14 +42,25 @@ export async function POST(request: Request) {
     );
   }
 
+  const cleanImageUrls = Array.isArray(imageUrls)
+    ? imageUrls.filter((u: unknown) => typeof u === "string").slice(0, 20)
+    : [];
+  const cleanSpecs = specs && typeof specs === "object" && !Array.isArray(specs)
+    ? Object.fromEntries(
+        Object.entries(specs)
+          .slice(0, 50)
+          .map(([k, v]) => [String(k).slice(0, 100), String(v).slice(0, 500)])
+      )
+    : undefined;
+
   const vehicle = await prisma.vehicle.create({
     data: {
-      make: make.trim(),
-      model: model.trim(),
+      make: String(make).trim().slice(0, 100),
+      model: String(model).trim().slice(0, 100),
       year: year ? parseInt(year) : null,
-      description: description?.trim() || null,
-      specs: specs || undefined,
-      imageUrls: imageUrls || [],
+      description: description ? String(description).trim().slice(0, 2000) : null,
+      specs: cleanSpecs,
+      imageUrls: cleanImageUrls,
       ownerId: session.user.id,
       published: published ?? true,
     },
@@ -60,12 +70,12 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { id, make, model, year, description, specs, imageUrls, published } = body;
 
   if (!id) {
@@ -86,15 +96,26 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 403 });
   }
 
+  const cleanImageUrls = Array.isArray(imageUrls)
+    ? imageUrls.filter((u: unknown) => typeof u === "string").slice(0, 20)
+    : [];
+  const cleanSpecs = specs && typeof specs === "object" && !Array.isArray(specs)
+    ? Object.fromEntries(
+        Object.entries(specs)
+          .slice(0, 50)
+          .map(([k, v]) => [String(k).slice(0, 100), String(v).slice(0, 500)])
+      )
+    : undefined;
+
   const vehicle = await prisma.vehicle.update({
     where: { id },
     data: {
-      make: make?.trim(),
-      model: model?.trim(),
+      make: make ? String(make).trim().slice(0, 100) : undefined,
+      model: model ? String(model).trim().slice(0, 100) : undefined,
       year: year ? parseInt(year) : null,
-      description: description?.trim() || null,
-      specs: specs || undefined,
-      imageUrls: imageUrls || [],
+      description: description ? String(description).trim().slice(0, 2000) : null,
+      specs: cleanSpecs,
+      imageUrls: cleanImageUrls,
       published: published ?? undefined,
     },
   });
@@ -103,7 +124,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApproved, MAX_NAME_LENGTH, MAX_PHONE_LENGTH } from "@/lib/auth-helpers";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
@@ -22,27 +21,28 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { name, phone, avatarUrl } = body;
+  const body = await request.json().catch(() => ({}));
+  const { name, phone, avatarUrl } = body as {
+    name?: string;
+    phone?: string;
+    avatarUrl?: string;
+  };
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return NextResponse.json(
-      { error: "Navn er påkrevd" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Navn er påkrevd" }, { status: 400 });
   }
 
   const user = await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      name: name.trim(),
-      phone: phone?.trim() || null,
-      avatarUrl: avatarUrl?.trim() || null,
+      name: name.trim().slice(0, MAX_NAME_LENGTH),
+      phone: phone?.trim().slice(0, MAX_PHONE_LENGTH) || null,
+      avatarUrl: avatarUrl?.trim().slice(0, 500) || null,
     },
     select: { name: true, phone: true, avatarUrl: true },
   });

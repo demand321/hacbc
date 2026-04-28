@@ -3,6 +3,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
+const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+if (process.env.NODE_ENV === "production") {
+  if (!NEXTAUTH_SECRET || NEXTAUTH_SECRET.length < 32) {
+    throw new Error(
+      "NEXTAUTH_SECRET must be set to a strong random value (>=32 chars) in production"
+    );
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -44,9 +53,12 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.memberStatus = user.memberStatus;
         token.mustChangePassword = user.mustChangePassword;
+        token.refreshedAt = Date.now();
       }
-      // Refresh user data on session update
-      if (trigger === "update" && token.sub) {
+      const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+      const lastRefresh = (token.refreshedAt as number | undefined) ?? 0;
+      const stale = Date.now() - lastRefresh > REFRESH_INTERVAL_MS;
+      if ((trigger === "update" || stale) && token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
           select: { role: true, memberStatus: true, mustChangePassword: true },
@@ -55,6 +67,13 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
           token.memberStatus = dbUser.memberStatus;
           token.mustChangePassword = dbUser.mustChangePassword;
+          token.refreshedAt = Date.now();
+        } else {
+          // User deleted — invalidate token by clearing identifiers
+          token.sub = undefined;
+          token.role = "";
+          token.memberStatus = "";
+          token.mustChangePassword = false;
         }
       }
       return token;
@@ -75,6 +94,8 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60, // refresh JWT every hour
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: NEXTAUTH_SECRET,
 };

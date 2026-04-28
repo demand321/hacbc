@@ -51,7 +51,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Maks 50MB per fil" }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() || "pdf";
+  const { isMimeAllowed, extFromMime } = await import("@/lib/upload-security");
+  if (!isMimeAllowed(file.type, "document")) {
+    return NextResponse.json(
+      { error: "Filtypen er ikke tillatt (kun PDF, Word, Excel, txt)" },
+      { status: 400 }
+    );
+  }
+
+  const ext = extFromMime(file.type);
   const storagePath = `documents/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 

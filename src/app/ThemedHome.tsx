@@ -27,8 +27,8 @@ const features: Feature[] = [
   },
   {
     icon: Calendar,
-    title: "Arrangementer",
-    description: "Treff, cruising og klubbkvelder",
+    title: "Eventer",
+    description: "Treff, cruising, klubbkvelder og sosiale samlinger",
     href: "/arrangementer",
   },
   {
@@ -36,12 +36,6 @@ const features: Feature[] = [
     title: "Galleri",
     description: "Bilder fra treff og arrangementer",
     href: "/galleri",
-  },
-  {
-    icon: MapPin,
-    title: "Cruising",
-    description: "Se ruter og bilder fra cruising",
-    href: "/cruising",
   },
 ];
 
@@ -99,7 +93,7 @@ function GarageLayout({ upcomingEvents }: ThemedHomeProps) {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <JoinButton size="lg" />
             <Button asChild variant="outline" size="lg">
-              <Link href="/arrangementer">Se arrangementer</Link>
+              <Link href="/arrangementer">Se eventer</Link>
             </Button>
           </div>
         </div>
@@ -113,7 +107,7 @@ function GarageLayout({ upcomingEvents }: ThemedHomeProps) {
 
       {/* Features - 4 column grid */}
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-3">
           {features.map((feature) => (
             <Link key={feature.href} href={feature.href}>
               <Card className="feature-card group h-full border-border bg-card transition-all duration-300 hover:border-[var(--card-hover-border)]">
@@ -176,7 +170,7 @@ function Route66Layout({ upcomingEvents }: ThemedHomeProps) {
               <div className="mt-8 flex flex-wrap gap-4">
                 <JoinButton size="lg" />
                 <Button asChild variant="outline" size="lg">
-                  <Link href="/arrangementer">Se arrangementer</Link>
+                  <Link href="/arrangementer">Se eventer</Link>
                 </Button>
               </div>
             </div>
@@ -321,7 +315,7 @@ function ChromeLayout({ upcomingEvents }: ThemedHomeProps) {
           <div className="mt-12 flex flex-wrap items-center justify-center gap-6">
             <JoinButton size="lg" />
             <Button asChild variant="outline" size="lg">
-              <Link href="/arrangementer">Arrangementer</Link>
+              <Link href="/arrangementer">Eventer</Link>
             </Button>
           </div>
         </div>
@@ -480,7 +474,7 @@ function MidnightLayout({ upcomingEvents }: ThemedHomeProps) {
             <div className="mt-10 flex flex-wrap gap-4">
               <JoinButton size="lg" />
               <Button asChild variant="outline" size="lg">
-                <Link href="/arrangementer">Se arrangementer</Link>
+                <Link href="/arrangementer">Se eventer</Link>
               </Button>
             </div>
           </div>
@@ -683,7 +677,7 @@ function ThunderLayout({ upcomingEvents }: ThemedHomeProps) {
             <div className="mt-8 flex flex-wrap gap-4">
               <JoinButton size="lg" />
               <Button asChild variant="outline" size="lg">
-                <Link href="/arrangementer">Se arrangementer</Link>
+                <Link href="/arrangementer">Se eventer</Link>
               </Button>
             </div>
           </div>
@@ -703,7 +697,7 @@ function ThunderLayout({ upcomingEvents }: ThemedHomeProps) {
         style={{ borderColor: "rgba(59, 130, 246, 0.15)", background: "rgba(8, 20, 40, 0.8)" }}
       >
         <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-3">
             {features.map((feature, i) => (
               <Link
                 key={feature.href}
@@ -864,7 +858,7 @@ function DesertLayout({ upcomingEvents }: ThemedHomeProps) {
           <div className="mt-8 flex flex-wrap gap-4">
             <JoinButton size="lg" />
             <Button asChild variant="outline" size="lg">
-              <Link href="/arrangementer">Se arrangementer</Link>
+              <Link href="/arrangementer">Se eventer</Link>
             </Button>
           </div>
         </div>
@@ -994,7 +988,7 @@ function eventHref(event: UpcomingEvent) {
 }
 
 function eventLabel(event: UpcomingEvent) {
-  return event.type === "cruising" ? "Cruising" : "Arrangement";
+  return event.type === "cruising" ? "Cruising" : "Event";
 }
 
 function NextEventBanner({ upcomingEvents }: { upcomingEvents: UpcomingEvent[] }) {
@@ -1045,7 +1039,7 @@ function UpcomingEventsList({ upcomingEvents }: { upcomingEvents: UpcomingEvent[
   return (
     <section className="mx-auto max-w-7xl px-4 py-12">
       <h2 className="mb-6 font-[family-name:var(--font-heading)] text-2xl font-bold uppercase tracking-tight">
-        Kommende <span className="text-primary">arrangementer</span>
+        Kommende <span className="text-primary">eventer</span>
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rest.map((event) => {

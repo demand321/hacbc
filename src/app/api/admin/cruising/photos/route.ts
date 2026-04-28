@@ -9,20 +9,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
   }
 
-  const { eventId, url, storagePath, comment } = await req.json();
+  const body = await req.json().catch(() => ({}));
+  const { eventId, storagePath, comment } = body as {
+    eventId?: string;
+    storagePath?: string;
+    comment?: string;
+  };
 
-  if (!eventId || !url) {
-    return NextResponse.json(
-      { error: "Mangler påkrevde felt" },
-      { status: 400 }
-    );
+  if (!eventId) {
+    return NextResponse.json({ error: "Mangler eventId" }, { status: 400 });
   }
+  if (!storagePath || !storagePath.startsWith(`cruising/${eventId}/`) || storagePath.includes("..")) {
+    return NextResponse.json({ error: "Ugyldig storagePath" }, { status: 400 });
+  }
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(storagePath);
 
   const photo = await prisma.cruisingPhoto.create({
     data: {
-      url,
-      storagePath: storagePath || "",
-      comment: comment || null,
+      url: urlData.publicUrl,
+      storagePath,
+      comment: comment ? comment.toString().slice(0, 500) : null,
       eventId,
       uploadedById: session.user.id,
     },

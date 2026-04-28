@@ -20,9 +20,10 @@ export function AdminGalleryUpload({ albumId }: { albumId: string }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fileName: file.name,
+            kind: "gallery",
+            entityId: albumId,
             contentType: file.type,
-            folder: `gallery/${albumId}`,
+            size: file.size,
           }),
         });
         if (!signedRes.ok) continue;

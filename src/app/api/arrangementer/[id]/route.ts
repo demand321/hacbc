@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
@@ -6,6 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const session = await getServerSession(authOptions);
 
   const event = await prisma.event.findUnique({
     where: { id, isPublished: true },
@@ -44,8 +47,18 @@ export async function GET(
     }))
   );
 
+  // Hide signup IDs from everyone except the owning logged-in user.
+  const currentUserId = session?.user?.id ?? null;
+  const signups = event.signups.map((s) => ({
+    id: currentUserId && s.userId === currentUserId ? s.id : null,
+    name: s.name,
+    userId: s.userId,
+    createdAt: s.createdAt,
+  }));
+
   return NextResponse.json({
     ...event,
+    signups,
     photos,
   });
 }

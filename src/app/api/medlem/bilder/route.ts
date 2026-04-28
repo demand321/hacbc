@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApproved, MAX_CAPTION_LENGTH } from "@/lib/auth-helpers";
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
@@ -30,38 +29,47 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await requireApproved();
   if (!session) {
     return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { albumId, url, caption } = body;
+  const body = await request.json().catch(() => ({}));
+  const { albumId, url, caption } = body as {
+    albumId?: string;
+    url?: string;
+    caption?: string;
+  };
 
-  if (!albumId || !url) {
+  if (!albumId || !url || typeof url !== "string") {
     return NextResponse.json(
       { error: "Album og bilde-URL er påkrevd" },
       { status: 400 }
     );
   }
 
-  // Verify album exists
-  const album = await prisma.album.findUnique({
-    where: { id: albumId },
-  });
-
-  if (!album) {
+  const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  if (!supabaseHost || !url.startsWith(`${supabaseHost}/storage/v1/object/public/uploads/`)) {
     return NextResponse.json(
-      { error: "Album ikke funnet" },
-      { status: 404 }
+      { error: "URL må peke til klubbens lagring" },
+      { status: 400 }
     );
   }
+
+  const album = await prisma.album.findUnique({ where: { id: albumId } });
+  if (!album) {
+    return NextResponse.json({ error: "Album ikke funnet" }, { status: 404 });
+  }
+
+  const storagePath = decodeURIComponent(
+    url.substring(`${supabaseHost}/storage/v1/object/public/uploads/`.length)
+  );
 
   const photo = await prisma.photo.create({
     data: {
       url: url.trim(),
-      storagePath: url.trim(), // Placeholder until Supabase Storage integration
-      caption: caption?.trim() || null,
+      storagePath,
+      caption: caption ? caption.toString().trim().slice(0, MAX_CAPTION_LENGTH) : null,
       albumId,
       uploadedById: session.user.id,
     },

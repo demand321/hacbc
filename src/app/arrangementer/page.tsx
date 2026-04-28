@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +13,20 @@ type EventItem = {
   imageUrl: string | null;
   eventType: string;
   isClubEvent: boolean;
+  kind: "event";
+} | {
+  id: string;
+  title: string;
+  date: Date;
+  routeTitle: string | null;
+  signupCount: number;
+  photoCount: number;
+  kind: "cruising";
 };
 
 export const metadata = {
-  title: "Arrangementer",
-  description: "Kommende og tidligere arrangementer",
+  title: "Eventer",
+  description: "Kommende og tidligere eventer",
 };
 
 function DateBadge({ date, eventType }: { date: Date; eventType: string }) {
@@ -27,6 +36,7 @@ function DateBadge({ date, eventType }: { date: Date; eventType: string }) {
   const bgClass =
     eventType === "AMCAR" ? "bg-blue-600" :
     eventType === "VETERAN" ? "bg-amber-600" :
+    eventType === "CRUISING" ? "bg-primary" :
     "bg-hacbc-red";
 
   return (
@@ -38,6 +48,43 @@ function DateBadge({ date, eventType }: { date: Date; eventType: string }) {
 }
 
 function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
+  if (event.kind === "cruising") {
+    return (
+      <Link href={`/cruising/${event.id}`}>
+        <Card className={`group h-full border-border bg-card transition-colors hover:border-primary/30 border-l-[5px] border-l-primary shadow-[inset_0_0_12px_-4px] shadow-primary/20 ${isPast ? "opacity-75 hover:opacity-100" : ""}`}>
+          <CardContent className="flex items-start gap-4 pt-2">
+            <DateBadge date={event.date} eventType="CRUISING" />
+            <div className="min-w-0 flex-1">
+              <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold uppercase leading-tight">
+                {event.title}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {event.date.toLocaleDateString("nb-NO", {
+                  weekday: isPast ? undefined : "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+              {event.routeTitle && (
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="h-3 w-3 text-primary" />
+                  {event.routeTitle}
+                </p>
+              )}
+              {event.signupCount > 0 && (
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  {event.signupCount} påmeldt
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+    );
+  }
+
   const isClub = event.isClubEvent || event.eventType === "CRUISING";
 
   return (
@@ -79,26 +126,61 @@ function EventCard({ event, isPast }: { event: EventItem; isPast?: boolean }) {
   );
 }
 
-export default async function ArrangementerPage() {
+export default async function EventerPage() {
   const now = new Date();
 
-  const events = await prisma.event.findMany({
-    where: { isPublished: true },
-    orderBy: { date: "asc" },
-  });
+  const [events, cruisingEvents] = await Promise.all([
+    prisma.event.findMany({
+      where: { isPublished: true },
+      orderBy: { date: "asc" },
+    }),
+    prisma.cruisingEvent.findMany({
+      orderBy: { date: "asc" },
+      include: {
+        route: { select: { title: true } },
+        signups: { select: { id: true } },
+        photos: { select: { id: true } },
+      },
+    }),
+  ]);
 
-  const upcoming = events.filter((e) => e.date >= now);
-  const past = events
+  const allEvents: EventItem[] = [
+    ...events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      location: e.location,
+      imageUrl: e.imageUrl,
+      eventType: e.eventType,
+      isClubEvent: e.isClubEvent,
+      kind: "event" as const,
+    })),
+    ...cruisingEvents.map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      routeTitle: e.route?.title ?? null,
+      signupCount: e.signups.length,
+      photoCount: e.photos.length,
+      kind: "cruising" as const,
+    })),
+  ];
+
+  const upcoming = allEvents
+    .filter((e) => e.date >= now)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const past = allEvents
     .filter((e) => e.date < now)
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
       <h1 className="font-[family-name:var(--font-heading)] text-4xl font-bold uppercase tracking-tight sm:text-5xl">
-        Arrange<span className="text-hacbc-red">menter</span>
+        Even<span className="text-hacbc-red">ter</span>
       </h1>
       <p className="mt-4 text-muted-foreground">
-        Treff, cruising og klubbkvelder.
+        Treff, cruising, klubbkvelder og sosiale samlinger.
       </p>
 
       {/* Legend */}
@@ -106,6 +188,10 @@ export default async function ArrangementerPage() {
         <span className="flex items-center gap-2">
           <span className="inline-block h-4 w-1 rounded-full bg-hacbc-red" />
           Klubbarrangement
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-4 w-4 rounded-full bg-primary" />
+          Cruising
         </span>
         <span className="flex items-center gap-2">
           <span className="inline-block h-4 w-4 rounded-full bg-blue-600" />
@@ -124,19 +210,19 @@ export default async function ArrangementerPage() {
       {/* Upcoming */}
       <section className="mt-10">
         <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold uppercase tracking-tight">
-          Kommende arrangementer
+          Kommende eventer
         </h2>
         {upcoming.length === 0 ? (
           <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
             <Calendar className="mb-4 h-12 w-12 text-muted-foreground/50" />
             <p className="text-muted-foreground">
-              Ingen kommende arrangementer for øyeblikket.
+              Ingen kommende eventer for øyeblikket.
             </p>
           </div>
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={`${event.kind}-${event.id}`} event={event} />
             ))}
           </div>
         )}
@@ -146,11 +232,11 @@ export default async function ArrangementerPage() {
       {past.length > 0 && (
         <section className="mt-16">
           <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold uppercase tracking-tight text-muted-foreground">
-            Tidligere arrangementer
+            Tidligere eventer
           </h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((event) => (
-              <EventCard key={event.id} event={event} isPast />
+              <EventCard key={`${event.kind}-${event.id}`} event={event} isPast />
             ))}
           </div>
         </section>

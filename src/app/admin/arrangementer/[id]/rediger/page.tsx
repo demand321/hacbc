@@ -6,14 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-function toLocalDatetime(iso: string | null) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const offset = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - offset * 60000);
-  return local.toISOString().slice(0, 16);
-}
+import { DatePicker } from "@/components/ui/date-picker";
+import { splitDateTime, combineDateTime, TIME_OPTIONS } from "@/lib/datetime";
 
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +19,9 @@ export default function EditEventPage() {
     title: "",
     description: "",
     date: "",
+    time: "18:00",
     endDate: "",
+    endTime: "20:00",
     location: "",
     address: "",
     imageUrl: "",
@@ -43,11 +39,15 @@ export default function EditEventPage() {
       ]);
       if (eventRes.ok) {
         const event = await eventRes.json();
+        const start = splitDateTime(event.date);
+        const end = splitDateTime(event.endDate);
         setForm({
           title: event.title ?? "",
           description: event.description ?? "",
-          date: toLocalDatetime(event.date),
-          endDate: toLocalDatetime(event.endDate),
+          date: start.date,
+          time: start.time || "18:00",
+          endDate: end.date,
+          endTime: end.time || "20:00",
           location: event.location ?? "",
           address: event.address ?? "",
           imageUrl: event.imageUrl ?? "",
@@ -72,6 +72,10 @@ export default function EditEventPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.date) {
+      alert("Startdato er påkrevd.");
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/admin/arrangementer", {
@@ -80,8 +84,8 @@ export default function EditEventPage() {
       body: JSON.stringify({
         id,
         ...form,
-        date: new Date(form.date).toISOString(),
-        endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
+        date: combineDateTime(form.date, form.time),
+        endDate: form.endDate ? combineDateTime(form.endDate, form.endTime, "20:00") : null,
       }),
     });
 
@@ -100,6 +104,11 @@ export default function EditEventPage() {
 
   return (
     <div>
+      <datalist id="time-options">
+        {TIME_OPTIONS.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
       <h2 className="mb-6 text-xl font-semibold">Rediger arrangement</h2>
       <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
         <div>
@@ -121,24 +130,50 @@ export default function EditEventPage() {
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="date">Startdato *</Label>
-            <Input
-              id="date"
-              type="datetime-local"
-              required
-              value={form.date}
-              onChange={(e) => update("date", e.target.value)}
-            />
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div>
+              <Label>Startdato *</Label>
+              <DatePicker
+                value={form.date}
+                onChange={(val) => update("date", val)}
+                placeholder="Velg dato"
+              />
+            </div>
+            <div>
+              <Label htmlFor="time">Klokkeslett</Label>
+              <Input
+                id="time"
+                list="time-options"
+                inputMode="numeric"
+                placeholder="18:00"
+                maxLength={5}
+                value={form.time}
+                onChange={(e) => update("time", e.target.value)}
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="endDate">Sluttdato</Label>
-            <Input
-              id="endDate"
-              type="datetime-local"
-              value={form.endDate}
-              onChange={(e) => update("endDate", e.target.value)}
-            />
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div>
+              <Label>Sluttdato</Label>
+              <DatePicker
+                value={form.endDate}
+                onChange={(val) => update("endDate", val)}
+                placeholder="Valgfritt"
+              />
+            </div>
+            <div>
+              <Label htmlFor="endTime">Klokkeslett</Label>
+              <Input
+                id="endTime"
+                list="time-options"
+                inputMode="numeric"
+                placeholder="20:00"
+                maxLength={5}
+                value={form.endTime}
+                onChange={(e) => update("endTime", e.target.value)}
+                disabled={!form.endDate}
+              />
+            </div>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

@@ -20,6 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
+import { splitDateTime, combineDateTime, TIME_OPTIONS } from "@/lib/datetime";
 
 const RouteEditor = dynamic(() => import("./RouteEditor"), {
   ssr: false,
@@ -56,12 +57,14 @@ interface CruisingPhoto {
 interface CruisingEvent {
   id?: string;
   date: string;
+  time: string;
   title: string;
   description: string;
   routeId: string;
   route?: { id: string; title: string } | null;
   photos: CruisingPhoto[];
 }
+
 
 export default function AdminCruisingPage() {
   // --- Routes state ---
@@ -74,10 +77,10 @@ export default function AdminCruisingPage() {
   const [events, setEvents] = useState<CruisingEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [showNewEvent, setShowNewEvent] = useState(false);
-  const [newEvent, setNewEvent] = useState({ date: "", title: "", description: "", routeId: "" });
+  const [newEvent, setNewEvent] = useState({ date: "", time: "18:00", title: "", description: "", routeId: "" });
   const [eventSaving, setEventSaving] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
-  const [editEvent, setEditEvent] = useState({ date: "", title: "", description: "", routeId: "" });
+  const [editEvent, setEditEvent] = useState({ date: "", time: "18:00", title: "", description: "", routeId: "" });
 
   // --- Tab ---
   const [tab, setTab] = useState<"events" | "routes">("events");
@@ -117,15 +120,19 @@ export default function AdminCruisingPage() {
       if (res.ok) {
         const data = await res.json();
         setEvents(
-          data.map((e: any) => ({
-            id: e.id,
-            date: e.date.slice(0, 10),
-            title: e.title,
-            description: e.description ?? "",
-            routeId: e.routeId ?? "",
-            route: e.route,
-            photos: e.photos ?? [],
-          }))
+          data.map((e: any) => {
+            const { date, time } = splitDateTime(e.date);
+            return {
+              id: e.id,
+              date,
+              time,
+              title: e.title,
+              description: e.description ?? "",
+              routeId: e.routeId ?? "",
+              route: e.route,
+              photos: e.photos ?? [],
+            };
+          })
         );
       }
       setEventsLoading(false);
@@ -262,15 +269,20 @@ export default function AdminCruisingPage() {
     const res = await fetch("/api/admin/cruising/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newEvent),
+      body: JSON.stringify({
+        ...newEvent,
+        date: combineDateTime(newEvent.date, newEvent.time),
+      }),
     });
 
     if (res.ok) {
       const saved = await res.json();
+      const { date, time } = splitDateTime(saved.date);
       setEvents((prev) => [
         {
           id: saved.id,
-          date: saved.date.slice(0, 10),
+          date,
+          time,
           title: saved.title,
           description: saved.description ?? "",
           routeId: saved.routeId ?? "",
@@ -279,7 +291,7 @@ export default function AdminCruisingPage() {
         },
         ...prev,
       ]);
-      setNewEvent({ date: "", title: "", description: "", routeId: "" });
+      setNewEvent({ date: "", time: "18:00", title: "", description: "", routeId: "" });
       setShowNewEvent(false);
     } else {
       alert("Noe gikk galt.");
@@ -301,6 +313,7 @@ export default function AdminCruisingPage() {
     setEditingEventId(event.id!);
     setEditEvent({
       date: event.date,
+      time: event.time,
       title: event.title,
       description: event.description,
       routeId: event.routeId,
@@ -317,17 +330,23 @@ export default function AdminCruisingPage() {
     const res = await fetch("/api/admin/cruising/events", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: editingEventId, ...editEvent }),
+      body: JSON.stringify({
+        id: editingEventId,
+        ...editEvent,
+        date: combineDateTime(editEvent.date, editEvent.time),
+      }),
     });
 
     if (res.ok) {
       const saved = await res.json();
+      const { date, time } = splitDateTime(saved.date);
       setEvents((prev) =>
         prev.map((e) =>
           e.id === editingEventId
             ? {
                 ...e,
-                date: saved.date.slice(0, 10),
+                date,
+                time,
                 title: saved.title,
                 description: saved.description ?? "",
                 routeId: saved.routeId ?? "",
@@ -345,19 +364,32 @@ export default function AdminCruisingPage() {
 
   async function handlePhotoUpload(eventId: string, files: FileList) {
     for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
+      const signedRes = await fetch("/api/upload/signed-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "cruising",
+          entityId: eventId,
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+      if (!signedRes.ok) continue;
+      const { signedUrl, storagePath } = await signedRes.json();
 
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+      const uploadRes = await fetch(signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
       if (!uploadRes.ok) continue;
-      const { url, path } = await uploadRes.json();
 
       const comment = prompt("Kommentar til bildet (valgfritt):", "") ?? "";
 
       const photoRes = await fetch("/api/admin/cruising/photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId, url, storagePath: path, comment: comment || null }),
+        body: JSON.stringify({ eventId, storagePath, comment: comment || null }),
       });
 
       if (photoRes.ok) {
@@ -388,6 +420,11 @@ export default function AdminCruisingPage() {
 
   return (
     <div>
+      <datalist id="time-options">
+        {TIME_OPTIONS.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
       <h2 className="mb-6 text-xl font-semibold">Cruising</h2>
 
       {/* Tabs */}
@@ -433,13 +470,25 @@ export default function AdminCruisingPage() {
             <Card className="border-primary/30">
               <CardContent className="space-y-3 p-4">
                 <h3 className="text-sm font-medium">Ny cruising</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <div>
                     <Label>Dato *</Label>
                     <DatePicker
                       value={newEvent.date}
                       onChange={(val) => setNewEvent({ ...newEvent, date: val })}
                       placeholder="Velg dato"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="evTime">Klokkeslett</Label>
+                    <Input
+                      id="evTime"
+                      list="time-options"
+                      inputMode="numeric"
+                      placeholder="18:00"
+                      maxLength={5}
+                      value={newEvent.time}
+                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
                     />
                   </div>
                   <div>
@@ -501,13 +550,24 @@ export default function AdminCruisingPage() {
                   <CardContent className="p-4">
                     {editingEventId === event.id ? (
                       <div className="space-y-3">
-                        <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-3 sm:grid-cols-3">
                           <div>
                             <Label>Dato *</Label>
                             <DatePicker
                               value={editEvent.date}
                               onChange={(val) => setEditEvent({ ...editEvent, date: val })}
                               placeholder="Velg dato"
+                            />
+                          </div>
+                          <div>
+                            <Label>Klokkeslett</Label>
+                            <Input
+                              list="time-options"
+                              inputMode="numeric"
+                              placeholder="18:00"
+                              maxLength={5}
+                              value={editEvent.time}
+                              onChange={(e) => setEditEvent({ ...editEvent, time: e.target.value })}
                             />
                           </div>
                           <div>

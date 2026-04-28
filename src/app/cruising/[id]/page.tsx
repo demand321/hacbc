@@ -165,7 +165,7 @@ export default function CruisingDetailPage() {
     if (!event) return;
     if (isLoggedIn && session.user?.id) {
       const existing = event.signups.find((s) => s.userId === session.user?.id);
-      if (existing) {
+      if (existing && existing.id) {
         setMySignupId(existing.id);
         setSignupSuccess(true);
         setShowChat(true);
@@ -174,15 +174,9 @@ export default function CruisingDetailPage() {
     }
     const saved = localStorage.getItem(`cruising-signup-${id}`);
     if (saved) {
-      // Verify it's still valid
-      const exists = event.signups.find((s) => s.id === saved);
-      if (exists) {
-        setMySignupId(saved);
-        setSignupSuccess(true);
-        setShowChat(true);
-      } else {
-        localStorage.removeItem(`cruising-signup-${id}`);
-      }
+      setMySignupId(saved);
+      setSignupSuccess(true);
+      setShowChat(true);
     }
   }, [id, event, isLoggedIn, session]);
 
@@ -274,9 +268,10 @@ export default function CruisingDetailPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fileName: file.name,
+            kind: "cruising",
+            entityId: id,
             contentType: file.type,
-            folder: `cruising/${id}`,
+            size: file.size,
           }),
         });
         if (!signedRes.ok) {

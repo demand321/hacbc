@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@supabase/supabase-js";
+import { isMimeAllowed, extFromMime, ALLOWED_VIDEO_TYPES } from "@/lib/upload-security";
+import { MAX_CAPTION_LENGTH } from "@/lib/auth-helpers";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,16 +23,15 @@ export async function POST(
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const signupId = formData.get("signupId") as string | null;
-  const comment = (formData.get("comment") as string | null)?.trim() || null;
+  const comment = ((formData.get("comment") as string | null)?.trim() || "").slice(0, MAX_CAPTION_LENGTH) || null;
 
   if (!file) {
     return NextResponse.json({ error: "Ingen fil valgt" }, { status: 400 });
   }
-  const isImage = file.type.startsWith("image/");
-  const isVideo = file.type.startsWith("video/");
-  if (!isImage && !isVideo) {
-    return NextResponse.json({ error: "Kun bilder og video" }, { status: 400 });
+  if (!isMimeAllowed(file.type, "imageOrVideo")) {
+    return NextResponse.json({ error: "Filtypen er ikke tillatt" }, { status: 400 });
   }
+  const isVideo = ALLOWED_VIDEO_TYPES.has(file.type.toLowerCase());
   const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
   if (file.size > maxSize) {
     return NextResponse.json(
@@ -58,8 +59,8 @@ export async function POST(
     return NextResponse.json({ error: "Du må være påmeldt for å laste opp bilder" }, { status: 403 });
   }
 
-  // Upload to Supabase Storage
-  const ext = file.name.split(".").pop() || "jpg";
+  // Upload to Supabase Storage — extension from validated MIME, never from filename
+  const ext = extFromMime(file.type);
   const fileName = `cruising/${id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 

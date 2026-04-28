@@ -2,17 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MAX_NAME_LENGTH, MAX_PHONE_LENGTH } from "@/lib/auth-helpers";
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  // 10 signups per IP per 10 min
+  const rl = rateLimit(`event-signup:${getClientIp(req)}`, 10, 10 * 60 * 1000);
+  if (!rl.ok) return rateLimitResponse(rl);
+
   const body = await req.json();
   const session = await getServerSession(authOptions);
 
-  const name = session?.user?.name || (body.name || "").trim();
-  const phone = (body.phone || "").trim() || null;
+  const rawName = session?.user?.name || String(body.name || "").trim();
+  const name = rawName.slice(0, MAX_NAME_LENGTH);
+  const rawPhone = String(body.phone || "").trim();
+  const phone = rawPhone ? rawPhone.slice(0, MAX_PHONE_LENGTH) : null;
 
   if (!name) {
     return NextResponse.json({ error: "Navn er påkrevd" }, { status: 400 });

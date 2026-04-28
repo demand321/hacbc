@@ -2,11 +2,12 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
-import { Users, Calendar, ShoppingBag, Image, Route, FileText, Files } from "lucide-react";
+import { Users, Calendar, ShoppingBag, Image, Route, FileText, Files, Car } from "lucide-react";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard", icon: FileText },
   { href: "/admin/medlemmer", label: "Medlemmer", icon: Users },
+  { href: "/admin/kjoretoy", label: "Kjøretøy", icon: Car },
   { href: "/admin/arrangementer", label: "Arrangementer", icon: Calendar },
   { href: "/admin/shop", label: "Klubbshop", icon: ShoppingBag },
   { href: "/admin/galleri", label: "Galleri", icon: Image },

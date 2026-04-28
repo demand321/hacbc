@@ -22,7 +22,23 @@
       "Bash(npx vercel:*)",
       "WebFetch(domain:hacbc.no)",
       "Bash(netstat:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(gh run:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(node:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(npm list:*)",
+      "WebFetch(domain:vercel.com)",
+      "WebFetch(domain:hacbc.vercel.app)",
+      "Bash(DIRECT_URL=\"\" npx prisma:*)",
+      "Bash(rm:*)",
+      "WebSearch",
+      "Bash(xxd:*)",
+      "Bash(python3:*)",
+      "Bash(tasklist:*)",
+      "Bash(find /c/Prosjekter/AI/HACBC/src/app/api -type f -name \"*photo*\" -o -name \"*galleri*\" 2>/dev/null | head -20)",
+      "Bash(find /c/Prosjekter/AI/HACBC/src/app/api/arrangementer -type f -name \"*.ts\" 2>/dev/null | head -20)",
+      "Bash(npm audit *)"
     ]
   }
 }

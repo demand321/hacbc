@@ -163,7 +163,7 @@ export default function EventDetailPage({
       const existing = event.signups.find(
         (s) => s.userId === session.user?.id
       );
-      if (existing) {
+      if (existing && existing.id) {
         setMySignupId(existing.id);
         setSignupSuccess(true);
         setShowChat(true);
@@ -172,14 +172,9 @@ export default function EventDetailPage({
     }
     const saved = localStorage.getItem(`event-signup-${eventId}`);
     if (saved) {
-      const exists = event.signups.find((s) => s.id === saved);
-      if (exists) {
-        setMySignupId(saved);
-        setSignupSuccess(true);
-        setShowChat(true);
-      } else {
-        localStorage.removeItem(`event-signup-${eventId}`);
-      }
+      setMySignupId(saved);
+      setSignupSuccess(true);
+      setShowChat(true);
     }
   }, [eventId, event, isLoggedIn, session]);
 
@@ -300,9 +295,10 @@ export default function EventDetailPage({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fileName: file.name,
+            kind: "event",
+            entityId: eventId,
             contentType: file.type,
-            folder: `gallery/event-${eventId}`,
+            size: file.size,
           }),
         });
         if (!signedRes.ok) {

@@ -9,21 +9,31 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("Seeding database...");
 
-  // Create admin user
-  const adminPassword = await bcrypt.hash("admin123", 12);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@hacbc.no" },
-    update: {},
-    create: {
-      email: "admin@hacbc.no",
-      name: "HACBC Admin",
-      passwordHash: adminPassword,
-      role: "ADMIN",
-      memberStatus: "APPROVED",
-      memberSince: new Date(),
-    },
-  });
-  console.log(`Admin user created: ${admin.email}`);
+  if (process.env.NODE_ENV === "production") {
+    console.log("Refusing to seed default admin in production. Skipping admin upsert.");
+  } else {
+    const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD;
+    if (!seedAdminPassword || seedAdminPassword.length < 12) {
+      throw new Error(
+        "Set SEED_ADMIN_PASSWORD env var (min 12 chars) before seeding the default admin."
+      );
+    }
+    const adminPassword = await bcrypt.hash(seedAdminPassword, 12);
+    const admin = await prisma.user.upsert({
+      where: { email: "admin@hacbc.no" },
+      update: {},
+      create: {
+        email: "admin@hacbc.no",
+        name: "HACBC Admin",
+        passwordHash: adminPassword,
+        role: "ADMIN",
+        memberStatus: "APPROVED",
+        memberSince: new Date(),
+        mustChangePassword: true,
+      },
+    });
+    console.log(`Admin user ensured: ${admin.email} (mustChangePassword=true)`);
+  }
 
   // Create sample events
   const events = [
