@@ -65,6 +65,32 @@ interface CruisingEvent {
   photos: CruisingPhoto[];
 }
 
+interface ApiWaypoint {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  note: string | null;
+}
+
+interface ApiRoute {
+  id: string;
+  title: string;
+  description: string | null;
+  isActive: boolean;
+  waypoints: ApiWaypoint[];
+}
+
+interface ApiCruisingEvent {
+  id: string;
+  date: string;
+  title: string;
+  description: string | null;
+  routeId: string | null;
+  route?: { id: string; title: string } | null;
+  photos?: CruisingPhoto[];
+}
+
 
 export default function AdminCruisingPage() {
   // --- Routes state ---
@@ -92,12 +118,12 @@ export default function AdminCruisingPage() {
       if (res.ok) {
         const data = await res.json();
         setRoutes(
-          data.map((r: any) => ({
+          (data as ApiRoute[]).map((r) => ({
             id: r.id,
             title: r.title,
             description: r.description ?? "",
             isActive: r.isActive,
-            waypoints: r.waypoints.map((w: any) => ({
+            waypoints: r.waypoints.map((w) => ({
               id: w.id,
               name: w.name,
               lat: w.lat,
@@ -120,7 +146,7 @@ export default function AdminCruisingPage() {
       if (res.ok) {
         const data = await res.json();
         setEvents(
-          data.map((e: any) => {
+          (data as ApiCruisingEvent[]).map((e) => {
             const { date, time } = splitDateTime(e.date);
             return {
               id: e.id,
@@ -129,7 +155,7 @@ export default function AdminCruisingPage() {
               title: e.title,
               description: e.description ?? "",
               routeId: e.routeId ?? "",
-              route: e.route,
+              route: e.route ?? null,
               photos: e.photos ?? [],
             };
           })
@@ -215,14 +241,14 @@ export default function AdminCruisingPage() {
     });
 
     if (res.ok) {
-      const saved = await res.json();
+      const saved = (await res.json()) as ApiRoute;
       setRoutes((prev) =>
         prev.map((r, i) =>
           i === routeIndex
             ? {
                 ...r,
                 id: saved.id,
-                waypoints: saved.waypoints.map((w: any) => ({
+                waypoints: saved.waypoints.map((w) => ({
                   id: w.id,
                   name: w.name,
                   lat: w.lat,
