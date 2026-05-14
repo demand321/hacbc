@@ -72,6 +72,11 @@ Uses `@base-ui/react` internally (not Radix, except Button which uses `@radix-ui
 
 Seed-only (dev): `SEED_ADMIN_PASSWORD` (min 12 chars, required by `prisma/seed.ts`).
 
+Email (optional — `src/lib/email.ts` skips sending silently if unset):
+- `RESEND_API_KEY` — Resend API key (domain hacbc.no must be verified at resend.com first)
+- `EMAIL_FROM` — sender, default `HACBC <noreply@hacbc.no>`
+- `EMAIL_MEMBERSHIP_NOTIFY` — recipient for new membership applications, default `post@hacbc.no`
+
 ### Path Alias
 
 `@/*` maps to `./src/*` (tsconfig.json).

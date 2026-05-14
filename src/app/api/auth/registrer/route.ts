@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { sendMembershipApplicationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     // If the email is taken, silently no-op so attackers can't probe the member list.
     if (!existing) {
       const passwordHash = await bcrypt.hash(password, 12);
-      await prisma.user.create({
+      const created = await prisma.user.create({
         data: {
           name: String(name).slice(0, 100),
           email: String(email).toLowerCase().slice(0, 200),
@@ -46,6 +47,19 @@ export async function POST(req: NextRequest) {
           memberStatus: "PENDING",
         },
       });
+
+      try {
+        await sendMembershipApplicationEmail({
+          name: created.name,
+          email: created.email,
+          phone: created.phone,
+          address: created.address,
+          postalCode: created.postalCode,
+          city: created.city,
+        });
+      } catch (err) {
+        console.error("[registrer] membership notification failed:", err);
+      }
     }
 
     return NextResponse.json({ success: true });
