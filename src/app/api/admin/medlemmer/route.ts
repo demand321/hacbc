@@ -137,6 +137,55 @@ export async function PATCH(req: NextRequest) {
       });
       break;
     }
+    case "delete": {
+      if (userId === session.user.id) {
+        return NextResponse.json(
+          { error: "Kan ikke slette egen konto" },
+          { status: 400 }
+        );
+      }
+      const target = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, role: true, memberStatus: true },
+      });
+      if (!target) {
+        return NextResponse.json({ error: "Bruker finnes ikke" }, { status: 404 });
+      }
+      if (target.memberStatus === "DELETED") {
+        return NextResponse.json(
+          { error: "Brukeren er allerede slettet" },
+          { status: 400 }
+        );
+      }
+      if (target.role === "ADMIN") {
+        const adminCount = await prisma.user.count({
+          where: { role: "ADMIN", memberStatus: { not: "DELETED" } },
+        });
+        if (adminCount <= 1) {
+          return NextResponse.json(
+            { error: "Kan ikke slette den siste admin-brukeren" },
+            { status: 400 }
+          );
+        }
+      }
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: userId },
+          data: { memberStatus: "DELETED" },
+        }),
+        prisma.auditLog.create({
+          data: {
+            action: "user.deleted",
+            actorId: session.user.id,
+            actorEmail: session.user.email ?? null,
+            targetId: target.id,
+            targetEmail: target.email,
+            metadata: { previousRole: target.role, previousStatus: target.memberStatus },
+          },
+        }),
+      ]);
+      break;
+    }
     default:
       return NextResponse.json({ error: "Ugyldig handling" }, { status: 400 });
   }

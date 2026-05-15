@@ -17,6 +17,7 @@ enum MemberStatus {
   PENDING
   APPROVED
   REJECTED
+  DELETED
 }
 
 enum EventType {
@@ -365,4 +366,19 @@ model PhotoLike {
   @@unique([userId, cruisingPhotoId])
   @@index([galleryPhotoId])
   @@index([cruisingPhotoId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  actorId     String?
+  actorEmail  String?
+  targetId    String?
+  targetEmail String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([targetId])
+  @@index([actorId])
 }

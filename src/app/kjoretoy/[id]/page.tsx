@@ -31,11 +31,11 @@ export default async function VehicleDetailPage({
   const vehicle = await prisma.vehicle.findUnique({
     where: { id, published: true },
     include: {
-      owner: { select: { name: true, avatarUrl: true } },
+      owner: { select: { name: true, avatarUrl: true, memberStatus: true } },
     },
   });
 
-  if (!vehicle) notFound();
+  if (!vehicle || vehicle.owner.memberStatus === "DELETED") notFound();
 
   const specs =
     vehicle.specs && typeof vehicle.specs === "object"
