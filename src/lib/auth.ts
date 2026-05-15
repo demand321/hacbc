@@ -29,6 +29,8 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) return null;
 
+        if (user.memberStatus === "DELETED") return null;
+
         const isValid = await bcrypt.compare(
           credentials.password,
           user.passwordHash
@@ -63,13 +65,12 @@ export const authOptions: NextAuthOptions = {
           where: { id: token.sub },
           select: { role: true, memberStatus: true, mustChangePassword: true },
         });
-        if (dbUser) {
+        if (dbUser && dbUser.memberStatus !== "DELETED") {
           token.role = dbUser.role;
           token.memberStatus = dbUser.memberStatus;
           token.mustChangePassword = dbUser.mustChangePassword;
           token.refreshedAt = Date.now();
         } else {
-          // User deleted — invalidate token by clearing identifiers
           token.sub = undefined;
           token.role = "";
           token.memberStatus = "";

@@ -34,6 +34,7 @@ ALTER TABLE public."EventMessage"     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."PhotoComment"     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."documents"        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."PhotoLike"        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public."AuditLog"         ENABLE ROW LEVEL SECURITY;
 
 -- Prisma's own migration tracking table — same treatment.
 ALTER TABLE public._prisma_migrations ENABLE ROW LEVEL SECURITY;

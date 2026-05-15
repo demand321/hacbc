@@ -12,7 +12,10 @@ export const metadata = {
 
 export default async function KjoretoyPage() {
   const vehicles = await prisma.vehicle.findMany({
-    where: { published: true },
+    where: {
+      published: true,
+      owner: { memberStatus: { not: "DELETED" } },
+    },
     orderBy: { createdAt: "desc" },
     include: {
       owner: { select: { id: true, name: true } },

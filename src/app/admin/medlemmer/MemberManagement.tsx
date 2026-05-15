@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X, Shield, UserPlus, KeyRound, Pencil } from "lucide-react";
+import { Check, X, Shield, UserPlus, KeyRound, Pencil, Trash2 } from "lucide-react";
 
 type User = {
   id: string;
@@ -48,6 +48,9 @@ export function MemberManagement({ users }: { users: User[] }) {
   const [resetPassword, setResetPassword] = useState("");
   const [editUser, setEditUser] = useState<User | null>(null);
   const [editError, setEditError] = useState("");
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteNameInput, setDeleteNameInput] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
@@ -111,6 +114,30 @@ export function MemberManagement({ users }: { users: User[] }) {
     });
     setResetUserId(null);
     setResetPassword("");
+    setLoading(null);
+    router.refresh();
+  }
+
+  async function handleDelete(user: User) {
+    setDeleteError("");
+    if (deleteNameInput.trim() !== user.name) {
+      setDeleteError("Navnet stemmer ikke");
+      return;
+    }
+    setLoading(user.id);
+    const res = await fetch("/api/admin/medlemmer", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, action: "delete" }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setDeleteError(data.error || "Noe gikk galt");
+      setLoading(null);
+      return;
+    }
+    setDeleteUserId(null);
+    setDeleteNameInput("");
     setLoading(null);
     router.refresh();
   }
@@ -285,7 +312,46 @@ export function MemberManagement({ users }: { users: User[] }) {
           </TableHeader>
           <TableBody>
             {approved.map((user) => (
-              editUser?.id === user.id ? (
+              deleteUserId === user.id ? (
+                <TableRow key={user.id}>
+                  <TableCell colSpan={5}>
+                    <div className="space-y-3 py-2">
+                      <p className="text-sm">
+                        For å slette <strong>{user.name}</strong>, skriv inn navnet under. Brukerens kjøretøy
+                        skjules fra offentlige sider, men bilder, kommentarer og påmeldinger beholdes.
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          value={deleteNameInput}
+                          onChange={(e) => setDeleteNameInput(e.target.value)}
+                          placeholder={user.name}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && deleteNameInput.trim() === user.name) handleDelete(user);
+                            if (e.key === "Escape") { setDeleteUserId(null); setDeleteNameInput(""); setDeleteError(""); }
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(user)}
+                          disabled={loading === user.id || deleteNameInput.trim() !== user.name}
+                        >
+                          {loading === user.id ? "Sletter..." : "Slett"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setDeleteUserId(null); setDeleteNameInput(""); setDeleteError(""); }}
+                        >
+                          Avbryt
+                        </Button>
+                      </div>
+                      {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : editUser?.id === user.id ? (
                 <TableRow key={user.id}>
                   <TableCell colSpan={5}>
                     <form onSubmit={handleEditUser} className="space-y-3 py-2">
@@ -439,6 +505,16 @@ export function MemberManagement({ users }: { users: User[] }) {
                         Fjern admin
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => { setDeleteUserId(user.id); setDeleteNameInput(""); setDeleteError(""); }}
+                      disabled={loading === user.id}
+                    >
+                      <Trash2 className="mr-1 h-3 w-3" />
+                      Slett
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
