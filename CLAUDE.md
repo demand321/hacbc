@@ -5,13 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Development Commands
 
 ```bash
-npm run dev          # Start dev server (Next.js 16 with Turbopack)
-npm run build        # prisma generate && next build
-npm run lint         # ESLint
-npx prisma generate  # Regenerate Prisma client (required after schema changes)
+npm run dev           # Start dev server (Next.js 16 with Turbopack)
+npm run build         # prisma generate && next build (used by CI — no DB needed)
+npm run vercel-build  # prisma migrate deploy && prisma generate && next build (Vercel uses this)
+npm run lint          # ESLint
+npx prisma generate   # Regenerate Prisma client (required after schema changes)
 npx prisma migrate dev --name <name>  # Create migration
-npx prisma db seed   # Seed database (admin@hacbc.no / admin123)
+npx prisma db seed    # Seed database (admin@hacbc.no / admin123)
 ```
+
+Vercel automatically prefers `vercel-build` over `build`, so prod migrations run on every deploy. CI runs `build` against placeholder env vars (no DB available), which is why `migrate deploy` is split out of the regular `build` script.
 
 After changing `prisma/schema.prisma`, you must run `prisma generate` AND restart the dev server — the cached Prisma client won't know about new models otherwise.
 
