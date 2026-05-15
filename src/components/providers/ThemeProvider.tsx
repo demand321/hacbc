@@ -13,15 +13,16 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
 });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<ThemeId>("garage");
+const VALID_THEMES: ThemeId[] = ["garage", "route66", "chrome", "midnight", "thunder", "desert"];
 
-  useEffect(() => {
-    const saved = localStorage.getItem("hacbc-theme") as ThemeId | null;
-    if (saved && ["garage", "route66", "chrome", "midnight", "thunder", "desert"].includes(saved)) {
-      setTheme(saved);
-    }
-  }, []);
+function readStoredTheme(): ThemeId {
+  if (typeof window === "undefined") return "garage";
+  const saved = localStorage.getItem("hacbc-theme") as ThemeId | null;
+  return saved && VALID_THEMES.includes(saved) ? saved : "garage";
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<ThemeId>(readStoredTheme);
 
   useEffect(() => {
     localStorage.setItem("hacbc-theme", theme);

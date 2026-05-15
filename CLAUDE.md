@@ -70,6 +70,45 @@ Uses `@base-ui/react` internally (not Radix, except Button which uses `@radix-ui
 
 `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
+Seed-only (dev): `SEED_ADMIN_PASSWORD` (min 12 chars, required by `prisma/seed.ts`).
+
+Email (optional — `src/lib/email.ts` skips sending silently if unset):
+- `RESEND_API_KEY` — Resend API key (domain hacbc.no must be verified at resend.com first)
+- `EMAIL_FROM` — sender, default `HACBC <noreply@hacbc.no>`
+- `EMAIL_MEMBERSHIP_NOTIFY` — recipient for new membership applications, default `post@hacbc.no`
+
 ### Path Alias
 
 `@/*` maps to `./src/*` (tsconfig.json).
+
+## Branching & Deployment
+
+### Git branches
+
+- `main` — production. Protected: PR required, CI must pass, no force-push, no deletion.
+- `dev` — integration branch for ongoing work. All changes merge here first, then PR to `main`.
+
+Direct pushes to `main` are blocked. Workflow is `feature → dev → PR → main`.
+
+### CI (.github/workflows/ci.yml)
+
+Runs on PRs to `main` and pushes to `dev`/`main`. Three steps: `npm run lint`, `npx tsc --noEmit`, `npm run build`. The build uses placeholder env vars (no real DB connection needed — server pages with DB access use `force-dynamic`).
+
+### Vercel projects (two)
+
+| Vercel project | Deploys from | Live URL | Supabase project |
+|---|---|---|---|
+| `hacbc` | `main` | https://hacbc.no | prod Supabase (separate, **do not touch from dev work**) |
+| `hacbc-dev` | `dev` | `*.vercel.app` preview | `hpuerbylnwtneqelotsa` (dev) |
+
+Each Vercel project has its own scoped env vars. **Never copy prod credentials into the dev project, or vice versa.** The dev Supabase is safe to drop/reset; the prod one is live data.
+
+To prevent the dev project from building feature branches as previews, its **Ignored Build Step** is:
+```sh
+if [ "$VERCEL_GIT_COMMIT_REF" != "dev" ]; then exit 0; fi
+```
+
+### Supabase
+
+- **Prod** — owned by the user, used by `hacbc.no`. Credentials only live in the `hacbc` Vercel project env vars.
+- **Dev** — project ID `hpuerbylnwtneqelotsa`, region `eu-north-1`. Used by `hacbc-dev` Vercel and local `npm run dev`. Storage bucket `uploads` must exist on this project (matches code paths).
