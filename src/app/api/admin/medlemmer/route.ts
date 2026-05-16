@@ -137,6 +137,26 @@ export async function PATCH(req: NextRequest) {
       });
       break;
     }
+    case "toggle-notify": {
+      const target = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { notifyOnMemberApplication: true, memberStatus: true },
+      });
+      if (!target) {
+        return NextResponse.json({ error: "Bruker finnes ikke" }, { status: 404 });
+      }
+      if (target.memberStatus !== "APPROVED") {
+        return NextResponse.json(
+          { error: "Kun godkjente medlemmer kan motta varsler" },
+          { status: 400 }
+        );
+      }
+      await prisma.user.update({
+        where: { id: userId },
+        data: { notifyOnMemberApplication: !target.notifyOnMemberApplication },
+      });
+      break;
+    }
     case "delete": {
       if (userId === session.user.id) {
         return NextResponse.json(
