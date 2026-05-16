@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
 
 const FROM_ADDRESS = process.env.EMAIL_FROM ?? "HACBC <noreply@hacbc.no>";
 const MEMBERSHIP_NOTIFY_ADDRESS = process.env.EMAIL_MEMBERSHIP_NOTIFY ?? "post@hacbc.no";
@@ -87,9 +88,24 @@ export async function sendMembershipApplicationEmail(applicant: MembershipApplic
     `Postnr/sted: ${applicant.postalCode ?? "—"} ${applicant.city ?? ""}\n\n` +
     `Godkjenn eller avslå på https://hacbc.no/admin/medlemmer`;
 
+  const ccRecipients = await prisma.user
+    .findMany({
+      where: {
+        notifyOnMemberApplication: true,
+        memberStatus: "APPROVED",
+      },
+      select: { email: true },
+    })
+    .then((rows) => rows.map((r) => r.email))
+    .catch((err) => {
+      console.error("[email] failed to load CC recipients:", err);
+      return [] as string[];
+    });
+
   const { error } = await client.emails.send({
     from: FROM_ADDRESS,
     to: MEMBERSHIP_NOTIFY_ADDRESS,
+    cc: ccRecipients.length > 0 ? ccRecipients : undefined,
     subject: `${subjectPrefix}Ny medlemssøknad: ${applicant.name}`,
     html,
     text,

@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X, Shield, UserPlus, KeyRound, Pencil, Trash2 } from "lucide-react";
+import { Check, X, Shield, UserPlus, KeyRound, Pencil, Trash2, Bell, BellOff } from "lucide-react";
 
 type User = {
   id: string;
@@ -27,6 +27,7 @@ type User = {
   role: string;
   memberStatus: string;
   mustChangePassword: boolean;
+  notifyOnMemberApplication: boolean;
   memberSince: Date | null;
   createdAt: Date;
 };
@@ -92,7 +93,7 @@ export function MemberManagement({ users }: { users: User[] }) {
 
   async function handleAction(
     userId: string,
-    action: "approve" | "reject" | "make-admin" | "remove-admin"
+    action: "approve" | "reject" | "make-admin" | "remove-admin" | "toggle-notify"
   ) {
     setLoading(userId);
     await fetch("/api/admin/medlemmer", {
@@ -505,6 +506,20 @@ export function MemberManagement({ users }: { users: User[] }) {
                         Fjern admin
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant={user.notifyOnMemberApplication ? "default" : "outline"}
+                      onClick={() => handleAction(user.id, "toggle-notify")}
+                      disabled={loading === user.id}
+                      title={user.notifyOnMemberApplication ? "Mottar CC ved nye søknader" : "Mottar ikke CC"}
+                    >
+                      {user.notifyOnMemberApplication ? (
+                        <Bell className="mr-1 h-3 w-3" />
+                      ) : (
+                        <BellOff className="mr-1 h-3 w-3" />
+                      )}
+                      Søknadsvarsel
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"

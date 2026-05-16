@@ -17,6 +17,7 @@ export default async function AdminMembersPage() {
       role: true,
       memberStatus: true,
       mustChangePassword: true,
+      notifyOnMemberApplication: true,
       memberSince: true,
       createdAt: true,
     },
