@@ -31,11 +31,28 @@ Prisma 7 does NOT use a `url` in `schema.prisma`. Instead:
 
 ### Authentication & Authorization
 
-NextAuth.js 4 with credentials provider and JWT strategy. Three roles: `VISITOR`, `MEMBER`, `ADMIN`. Members go through approval: `PENDING` → `APPROVED` / `REJECTED`.
+NextAuth.js 4 with credentials provider and JWT strategy. Three roles: `VISITOR`, `MEMBER`, `ADMIN`. Members go through approval: `PENDING` → `APPROVED` / `REJECTED` / `DELETED`.
 
 - **Member layout** (`src/app/medlem/layout.tsx`): requires session + `APPROVED` status
 - **Admin layout** (`src/app/admin/layout.tsx`): requires `role === "ADMIN"`, renders sidebar nav
 - **API routes**: use `getServerSession(authOptions)` from `src/lib/auth.ts`
+- **DELETED users** are rejected at `authorize` and on JWT refresh — they cannot hold a session even with the right password
+
+### Soft-delete of members
+
+Admin can delete a member from `/admin/medlemmer` via the **Slett** button. Soft delete only — record stays, `memberStatus` becomes `DELETED`:
+- Cannot delete self; cannot delete the last admin
+- Confirmation requires typing the user's exact name
+- Each delete writes an `AuditLog` row (`action="user.deleted"`, actor + target captured). Audit table is DB-only (no UI), read it via Supabase Studio when needed.
+- Public `/kjoretoy` (list + detail) filters out vehicles where `owner.memberStatus === "DELETED"`
+- Photos, comments, likes, and cruising entries remain visible — their `authorName` / `uploaderName` strings are already stored standalone, so no anonymization needed
+
+### Transactional email (Resend)
+
+`src/lib/email.ts` wraps the Resend SDK. Silently no-ops if `RESEND_API_KEY` is unset.
+- New-member registrations trigger `sendMembershipApplicationEmail` from `POST /api/auth/registrer`. Email failure is caught and logged — never blocks the registration flow.
+- Subject is prefixed with `[TEST] ` and a yellow banner is added to the body whenever `NEXTAUTH_URL` hostname is not `hacbc.no` (so dev + local sends are visually distinct from prod)
+- **CC opt-in:** Each `User` has a `notifyOnMemberApplication` boolean. Admin toggles it via the **Søknadsvarsel** button in `/admin/medlemmer`. Email send loads all opted-in `APPROVED` users and adds them as CC. DB-load failure is logged but does not block the primary send.
 
 ### Theme System
 
@@ -115,3 +132,13 @@ if [ "$VERCEL_GIT_COMMIT_REF" != "dev" ]; then exit 0; fi
 
 - **Prod** — owned by the user, used by `hacbc.no`. Credentials only live in the `hacbc` Vercel project env vars.
 - **Dev** — project ID `hpuerbylnwtneqelotsa`, region `eu-north-1`. Used by `hacbc-dev` Vercel and local `npm run dev`. Storage bucket `uploads` must exist on this project (matches code paths).
+
+### Migrations
+
+`vercel-build` runs `prisma migrate deploy` before `next build`, so any new migration on `dev` is applied to the corresponding Supabase project on the first deploy that includes it. No manual `psql` or SQL Editor steps needed under normal circumstances.
+
+**Historical gotcha (fixed):** The original `build` script only did `prisma generate`, so a migration committed to `dev` would deploy successfully but the prod DB still lacked the new schema — runtime queries against new columns/enum values crashed pages on hacbc.no. Recovery was: promote the previous Vercel deploy back to production OR paste the migration SQL into Supabase SQL Editor. Don't undo the `vercel-build` split — CI uses placeholder env vars and would fail `migrate deploy`, which is why the migration step is intentionally absent from the plain `build`.
+
+### Resend domain (DNS)
+
+`hacbc.no` is verified at Resend with custom return-path on the `send` subdomain (so it doesn't collide with the Microsoft 365 MX on the root domain). The DNS records (DKIM TXT on `resend._domainkey`, MX + SPF TXT on `send`) live at Domeneshop and should not be touched.
