@@ -106,27 +106,28 @@ Email (optional — `src/lib/email.ts` skips sending silently if unset):
 ### Git branches
 
 - `main` — production. Protected: PR required, CI must pass, no force-push, no deletion.
-- `dev` — integration branch for ongoing work. All changes merge here first, then PR to `main`.
+- Feature branches → PR directly to `main`. No long-running integration branch.
 
-Direct pushes to `main` are blocked. Workflow is `feature → dev → PR → main`.
+Local development uses the dev Supabase via `.env`. Each PR also gets a preview deploy on the `hacbc-dev` Vercel project (against the same dev Supabase), so reviewers can click through changes before merge.
 
 ### CI (.github/workflows/ci.yml)
 
-Runs on PRs to `main` and pushes to `dev`/`main`. Three steps: `npm run lint`, `npx tsc --noEmit`, `npm run build`. The build uses placeholder env vars (no real DB connection needed — server pages with DB access use `force-dynamic`).
+Runs on PRs to `main` and pushes to `main`. Three steps: `npm run lint`, `npx tsc --noEmit`, `npm run build`. The build uses placeholder env vars (no real DB connection needed — server pages with DB access use `force-dynamic`).
 
 ### Vercel projects (two)
 
-| Vercel project | Deploys from | Live URL | Supabase project |
+| Vercel project | Builds | Live URL | Supabase project |
 |---|---|---|---|
-| `hacbc` | `main` | https://hacbc.no | prod Supabase (separate, **do not touch from dev work**) |
-| `hacbc-dev` | `dev` | `*.vercel.app` preview | `hpuerbylnwtneqelotsa` (dev) |
+| `hacbc` | production deploys from `main` | https://hacbc.no | prod Supabase (separate, **do not touch from dev work**) |
+| `hacbc-dev` | preview deploys for every PR/feature branch | per-PR `*.vercel.app` URL | `hpuerbylnwtneqelotsa` (dev) |
 
 Each Vercel project has its own scoped env vars. **Never copy prod credentials into the dev project, or vice versa.** The dev Supabase is safe to drop/reset; the prod one is live data.
 
-To prevent the dev project from building feature branches as previews, its **Ignored Build Step** is:
+`hacbc-dev` builds only `VERCEL_ENV=preview` deploys via its **Ignored Build Step**:
 ```sh
-if [ "$VERCEL_GIT_COMMIT_REF" != "dev" ]; then exit 0; fi
+if [ "$VERCEL_ENV" == "preview" ]; then exit 1; else exit 0; fi
 ```
+This way production pushes to `main` never accidentally land on the dev project. `hacbc` mirrors this with the inverse — it only builds production deploys.
 
 ### Supabase
 
@@ -135,9 +136,13 @@ if [ "$VERCEL_GIT_COMMIT_REF" != "dev" ]; then exit 0; fi
 
 ### Migrations
 
-`vercel-build` runs `prisma migrate deploy` before `next build`, so any new migration on `dev` is applied to the corresponding Supabase project on the first deploy that includes it. No manual `psql` or SQL Editor steps needed under normal circumstances.
+`vercel-build` runs `prisma migrate deploy` before `next build`, so any new migration is applied to the corresponding Supabase project on the first deploy that includes it. No manual `psql` or SQL Editor steps needed under normal circumstances.
 
-**Historical gotcha (fixed):** The original `build` script only did `prisma generate`, so a migration committed to `dev` would deploy successfully but the prod DB still lacked the new schema — runtime queries against new columns/enum values crashed pages on hacbc.no. Recovery was: promote the previous Vercel deploy back to production OR paste the migration SQL into Supabase SQL Editor. Don't undo the `vercel-build` split — CI uses placeholder env vars and would fail `migrate deploy`, which is why the migration step is intentionally absent from the plain `build`.
+**Historical gotcha (fixed):** The original `build` script only did `prisma generate`, so a new migration deployed successfully but the DB still lacked the new schema — runtime queries against new columns/enum values crashed pages on hacbc.no. Recovery was: promote the previous Vercel deploy back to production OR paste the migration SQL into Supabase SQL Editor. Don't undo the `vercel-build` split — CI uses placeholder env vars and would fail `migrate deploy`, which is why the migration step is intentionally absent from the plain `build`.
+
+### Dev Supabase keep-alive
+
+`.github/workflows/keep-supabase-dev-alive.yml` runs `psql -c "SELECT NOW()"` against the dev pooler every Monday and Thursday at 06:00 UTC. Comfortably under Supabase free-tier's ~7-day pause threshold. The connection string lives in repo secret `SUPABASE_DEV_DATABASE_URL` and has the `?pgbouncer=true` Prisma flag stripped via `${DATABASE_URL%%\?*}` (libpq rejects unknown query params).
 
 ### Resend domain (DNS)
 
