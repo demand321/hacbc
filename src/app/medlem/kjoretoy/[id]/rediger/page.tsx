@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, ArrowLeft, Upload } from "lucide-react";
+import { uploadVehicleImage } from "@/lib/upload-client";
 
 interface SpecEntry {
   key: string;
@@ -77,13 +78,11 @@ export default function EditVehiclePage() {
 
     setUploading(true);
     for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        setImageUrls((prev) => [...prev, data.url]);
+      try {
+        const url = await uploadVehicleImage(file);
+        setImageUrls((prev) => [...prev, url]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Opplasting feilet");
       }
     }
     setUploading(false);
