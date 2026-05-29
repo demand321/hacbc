@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendOrderNotificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -56,8 +57,28 @@ export async function POST(req: NextRequest) {
       },
       include: {
         items: { include: { product: true } },
+        user: { select: { name: true, email: true, phone: true } },
       },
     });
+
+    try {
+      await sendOrderNotificationEmail({
+        orderId: order.id,
+        customerName: order.user.name,
+        customerEmail: order.user.email,
+        customerPhone: order.user.phone,
+        note: order.note,
+        items: order.items.map((item) => ({
+          productName: item.product.name,
+          quantity: item.quantity,
+          size: item.size,
+          variant: item.variant,
+          priceInOre: item.product.price,
+        })),
+      });
+    } catch (err) {
+      console.error("[bestilling] order notification failed:", err);
+    }
 
     return NextResponse.json({ success: true, orderId: order.id });
   } catch {

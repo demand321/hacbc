@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X, Shield, UserPlus, KeyRound, Pencil, Trash2, Bell, BellOff } from "lucide-react";
+import { Check, X, Shield, UserPlus, KeyRound, Pencil, Trash2, Bell, BellOff, ShoppingBag } from "lucide-react";
 
 type User = {
   id: string;
@@ -28,6 +28,7 @@ type User = {
   memberStatus: string;
   mustChangePassword: boolean;
   notifyOnMemberApplication: boolean;
+  notifyOnShopOrder: boolean;
   memberSince: Date | null;
   createdAt: Date;
 };
@@ -93,7 +94,7 @@ export function MemberManagement({ users }: { users: User[] }) {
 
   async function handleAction(
     userId: string,
-    action: "approve" | "reject" | "make-admin" | "remove-admin" | "toggle-notify"
+    action: "approve" | "reject" | "make-admin" | "remove-admin" | "toggle-notify" | "toggle-shop-notify"
   ) {
     setLoading(userId);
     await fetch("/api/admin/medlemmer", {
@@ -519,6 +520,16 @@ export function MemberManagement({ users }: { users: User[] }) {
                         <BellOff className="mr-1 h-3 w-3" />
                       )}
                       Søknadsvarsel
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={user.notifyOnShopOrder ? "default" : "outline"}
+                      onClick={() => handleAction(user.id, "toggle-shop-notify")}
+                      disabled={loading === user.id}
+                      title={user.notifyOnShopOrder ? "Mottar CC ved nye bestillinger" : "Mottar ikke CC"}
+                    >
+                      <ShoppingBag className="mr-1 h-3 w-3" />
+                      Bestillingsvarsel
                     </Button>
                     <Button
                       size="sm"

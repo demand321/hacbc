@@ -41,6 +41,7 @@ model User {
   memberStatus       MemberStatus @default(PENDING)
   mustChangePassword Boolean      @default(false)
   notifyOnMemberApplication Boolean @default(false)
+  notifyOnShopOrder         Boolean @default(false)
   memberSince    DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
