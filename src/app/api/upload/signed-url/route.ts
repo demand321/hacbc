@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { requireApproved, requireAdmin } from "@/lib/auth-helpers";
-import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { requireApproved, requireSession } from "@/lib/auth-helpers";
+import { rateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 import {
   ALLOWED_IMAGE_TYPES,
   ALLOWED_VIDEO_TYPES,
@@ -19,42 +19,36 @@ const supabase = createClient(
 const BUCKET = "uploads";
 const MAX_SIZE = 200 * 1024 * 1024; // 200MB hard cap
 
-type UploadKind = "cruising" | "event" | "gallery" | "documents";
+type UploadKind = "cruising" | "event" | "gallery" | "documents" | "vehicle";
 
 const KIND_TO_ALLOWED_MIMES: Record<UploadKind, Set<string>> = {
   cruising: new Set([...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES]),
   event: new Set([...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES]),
   gallery: new Set([...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES]),
   documents: ALLOWED_DOCUMENT_TYPES,
+  vehicle: new Set(ALLOWED_IMAGE_TYPES),
 };
 
 export async function POST(req: NextRequest) {
-  const session = await requireApproved();
-  if (!session) {
-    return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
-  }
-
-  // 30 uploads per user per 10 min
-  const rl = rateLimit(`signed-url:${session.user.id}`, 30, 10 * 60 * 1000);
-  if (!rl.ok) return rateLimitResponse(rl);
-
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Ugyldig forespørsel" }, { status: 400 });
   }
 
-  const { kind, entityId, contentType, size } = body as {
+  const { kind, entityId, contentType, size, signupId } = body as {
     kind?: string;
     entityId?: string;
     contentType?: string;
     size?: number;
+    signupId?: string;
   };
 
   if (
     kind !== "cruising" &&
     kind !== "event" &&
     kind !== "gallery" &&
-    kind !== "documents"
+    kind !== "documents" &&
+    kind !== "vehicle"
   ) {
     return NextResponse.json({ error: "Ugyldig kind" }, { status: 400 });
   }
@@ -68,10 +62,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Filen er for stor" }, { status: 400 });
   }
 
-  const isAdmin = session.user.role === "ADMIN";
+  // Cruising allows a guest with a valid signupId; all other kinds require an APPROVED session.
+  const session = kind === "cruising"
+    ? await requireSession()
+    : await requireApproved();
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isApprovedMember = session?.user?.memberStatus === "APPROVED";
+
+  if (kind !== "cruising" && !session) {
+    return NextResponse.json({ error: "Ikke autorisert" }, { status: 401 });
+  }
+
+  // Rate limit: per user when logged in, per signupId for guests, IP as fallback.
+  const rlKey =
+    session?.user?.id ??
+    (signupId ? `signup:${signupId}` : `ip:${getClientIp(req)}`);
+  const rl = rateLimit(`signed-url:${rlKey}`, 30, 10 * 60 * 1000);
+  if (!rl.ok) return rateLimitResponse(rl);
+
   let prefix: string;
 
-  if (kind === "documents") {
+  if (kind === "vehicle") {
+    prefix = `vehicles/${session!.user.id}`;
+  } else if (kind === "documents") {
     if (!isAdmin) {
       return NextResponse.json({ error: "Ingen tilgang" }, { status: 403 });
     }
@@ -85,12 +98,24 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     if (!event) return NextResponse.json({ error: "Ukjent cruising-tur" }, { status: 404 });
-    if (!isAdmin) {
+
+    if (isAdmin) {
+      // admins can always upload
+    } else if (isApprovedMember) {
       const signup = await prisma.cruisingSignup.findUnique({
-        where: { eventId_userId: { eventId: entityId, userId: session.user.id } },
+        where: { eventId_userId: { eventId: entityId, userId: session!.user.id } },
       });
       if (!signup) return NextResponse.json({ error: "Ikke påmeldt" }, { status: 403 });
+    } else if (signupId && isValidId(signupId)) {
+      const guestSignup = await prisma.cruisingSignup.findFirst({
+        where: { id: signupId, eventId: entityId },
+        select: { id: true },
+      });
+      if (!guestSignup) return NextResponse.json({ error: "Ikke påmeldt" }, { status: 403 });
+    } else {
+      return NextResponse.json({ error: "Ikke påmeldt" }, { status: 403 });
     }
+
     prefix = `cruising/${entityId}`;
   } else if (kind === "event") {
     if (!entityId || !isValidId(entityId)) {
@@ -103,7 +128,7 @@ export async function POST(req: NextRequest) {
     if (!event) return NextResponse.json({ error: "Ukjent arrangement" }, { status: 404 });
     if (!isAdmin) {
       const signup = await prisma.eventSignup.findUnique({
-        where: { eventId_userId: { eventId: entityId, userId: session.user.id } },
+        where: { eventId_userId: { eventId: entityId, userId: session!.user.id } },
       });
       if (!signup) return NextResponse.json({ error: "Ikke påmeldt" }, { status: 403 });
     }
@@ -122,7 +147,7 @@ export async function POST(req: NextRequest) {
       let allowed = false;
       if (album.eventId) {
         const signup = await prisma.eventSignup.findUnique({
-          where: { eventId_userId: { eventId: album.eventId, userId: session.user.id } },
+          where: { eventId_userId: { eventId: album.eventId, userId: session!.user.id } },
         });
         allowed = !!signup;
       }

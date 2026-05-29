@@ -272,6 +272,7 @@ export default function CruisingDetailPage() {
             entityId: id,
             contentType: file.type,
             size: file.size,
+            signupId: mySignupId,
           }),
         });
         if (!signedRes.ok) {

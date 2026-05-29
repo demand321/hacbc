@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { uploadVehicleImage } from "@/lib/upload-client";
 
 interface Spec {
   key: string;
@@ -47,20 +48,11 @@ export default function NewVehiclePage() {
 
     setUploading(true);
     for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
-
       try {
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
-        if (res.ok) {
-          const data = await res.json();
-          setImageUrls((prev) => [...prev, data.url]);
-        } else {
-          const data = await res.json();
-          setError(data.error || "Opplasting feilet");
-        }
-      } catch {
-        setError("Opplasting feilet");
+        const url = await uploadVehicleImage(file);
+        setImageUrls((prev) => [...prev, url]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Opplasting feilet");
       }
     }
     setUploading(false);
