@@ -1,0 +1,16 @@
+name: Keep Supabase dev alive
+
+on:
+  schedule:
+    - cron: '0 6 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SELECT NOW() against dev pooler
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DEV_DATABASE_URL }}
+        run: |
+          psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -c "SELECT NOW();"
