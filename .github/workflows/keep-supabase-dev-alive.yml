@@ -13,4 +13,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DEV_DATABASE_URL }}
         run: |
-          psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -c "SELECT NOW();"
+          psql -v ON_ERROR_STOP=1 "${DATABASE_URL%%\?*}" -c "SELECT NOW();"
