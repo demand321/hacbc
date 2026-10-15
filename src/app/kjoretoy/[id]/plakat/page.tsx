@@ -56,8 +56,9 @@ export default async function VehiclePosterPage({
       ? (vehicle.specs as Record<string, string>)
       : null;
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? "https://hacbc.no";
-  const vehicleUrl = `${baseUrl.replace(/\/$/, "")}/kjoretoy/${id}`;
+  // Poster is physical and may outlive deployments; QR must always resolve to
+  // the live public site regardless of where the poster was generated.
+  const vehicleUrl = `https://hacbc.no/kjoretoy/${id}`;
   const qrSvgRaw = await QRCode.toString(vehicleUrl, {
     type: "svg",
     errorCorrectionLevel: "M",
