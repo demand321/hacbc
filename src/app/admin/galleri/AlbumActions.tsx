@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { Plus, Trash2, ImageIcon, Upload, Eye, Pencil, Check, X } from "lucide-react";
+import { resizeImageFile } from "@/lib/image-resize";
 
 interface AlbumItem {
   id: string;
@@ -86,11 +87,42 @@ export function AlbumActions({
 
   async function handleUpload(albumId: string, files: FileList) {
     setUploadingAlbumId(albumId);
-    for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("albumId", albumId);
-      await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
+    for (const rawFile of Array.from(files)) {
+      const file = rawFile.type.startsWith("image/")
+        ? await resizeImageFile(rawFile)
+        : rawFile;
+      const isLarge = file.size > 4 * 1024 * 1024;
+
+      if (isLarge) {
+        const signedRes = await fetch("/api/upload/signed-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "gallery",
+            entityId: albumId,
+            contentType: file.type,
+            size: file.size,
+          }),
+        });
+        if (!signedRes.ok) continue;
+        const { signedUrl, storagePath, publicUrl } = await signedRes.json();
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!uploadRes.ok) continue;
+        await fetch("/api/admin/galleri/photos/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: publicUrl, storagePath, albumId }),
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("albumId", albumId);
+        await fetch("/api/admin/galleri/photos", { method: "POST", body: formData });
+      }
     }
     setUploadingAlbumId(null);
     router.refresh();

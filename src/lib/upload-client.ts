@@ -1,6 +1,10 @@
+import { resizeImageFile } from "./image-resize";
+
 const LARGE_FILE_THRESHOLD = 4 * 1024 * 1024;
 
-export async function uploadVehicleImage(file: File): Promise<string> {
+export async function uploadVehicleImage(rawFile: File): Promise<string> {
+  const file = await resizeImageFile(rawFile);
+
   if (file.size <= LARGE_FILE_THRESHOLD) {
     const formData = new FormData();
     formData.append("file", file);

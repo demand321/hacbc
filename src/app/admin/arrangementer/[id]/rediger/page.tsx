@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { splitDateTime, combineDateTime, TIME_OPTIONS } from "@/lib/datetime";
+import { resizeImageFile } from "@/lib/image-resize";
 
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
@@ -212,8 +213,9 @@ export default function EditEventPage() {
                 input.type = "file";
                 input.accept = "image/*";
                 input.onchange = async () => {
-                  const file = input.files?.[0];
-                  if (!file) return;
+                  const rawFile = input.files?.[0];
+                  if (!rawFile) return;
+                  const file = await resizeImageFile(rawFile);
                   const formData = new FormData();
                   formData.append("file", file);
                   const res = await fetch("/api/upload", { method: "POST", body: formData });

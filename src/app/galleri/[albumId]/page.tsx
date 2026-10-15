@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft, Heart, MessageCircle, Play, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoLightbox, { type LightboxPhoto } from "@/components/PhotoLightbox";
+import { resizeImageFile } from "@/lib/image-resize";
 
 interface Photo extends LightboxPhoto {
   caption: string | null;
@@ -54,7 +55,10 @@ export default function AlbumPhotosPage({
 
   async function handleAdminUpload(files: FileList) {
     setUploading(true);
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = rawFile.type.startsWith("image/")
+        ? await resizeImageFile(rawFile)
+        : rawFile;
       const isLarge = file.size > 4 * 1024 * 1024;
       let photo = null;
 

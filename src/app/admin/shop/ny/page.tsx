@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Upload, Trash2, GripVertical } from "lucide-react";
+import { resizeImageFile } from "@/lib/image-resize";
 
 const COMMON_SIZES = ["One Size", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
 
@@ -80,7 +81,8 @@ export default function CreateEditProductPage() {
       .map((u) => u.trim())
       .filter(Boolean);
 
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = await resizeImageFile(rawFile);
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: formData });

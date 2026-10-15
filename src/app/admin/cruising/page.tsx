@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { splitDateTime, combineDateTime, TIME_OPTIONS } from "@/lib/datetime";
+import { resizeImageFile } from "@/lib/image-resize";
 
 const RouteEditor = dynamic(() => import("./RouteEditor"), {
   ssr: false,
@@ -389,7 +390,8 @@ export default function AdminCruisingPage() {
   }
 
   async function handlePhotoUpload(eventId: string, files: FileList) {
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = await resizeImageFile(rawFile);
       const signedRes = await fetch("/api/upload/signed-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
