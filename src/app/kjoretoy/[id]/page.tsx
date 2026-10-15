@@ -2,8 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { ArrowLeft, Car } from "lucide-react";
+import { authOptions } from "@/lib/auth";
+import { ArrowLeft, Car, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export async function generateMetadata({
@@ -28,14 +30,21 @@ export default async function VehicleDetailPage({
 }) {
   const { id } = await params;
 
-  const vehicle = await prisma.vehicle.findUnique({
-    where: { id, published: true },
-    include: {
-      owner: { select: { name: true, avatarUrl: true, memberStatus: true } },
-    },
-  });
+  const [vehicle, session] = await Promise.all([
+    prisma.vehicle.findUnique({
+      where: { id, published: true },
+      include: {
+        owner: { select: { id: true, name: true, avatarUrl: true, memberStatus: true } },
+      },
+    }),
+    getServerSession(authOptions),
+  ]);
 
   if (!vehicle || vehicle.owner.memberStatus === "DELETED") notFound();
+
+  const canPrintPoster =
+    !!session &&
+    (session.user.id === vehicle.owner.id || session.user.role === "ADMIN");
 
   const specs =
     vehicle.specs && typeof vehicle.specs === "object"
@@ -44,10 +53,18 @@ export default async function VehicleDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
-      <Button variant="ghost" className="mb-6" asChild><Link href="/kjoretoy">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Tilbake til kjøretøy
-      </Link></Button>
+      <div className="mb-6 flex items-center justify-between gap-2">
+        <Button variant="ghost" asChild><Link href="/kjoretoy">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Tilbake til kjøretøy
+        </Link></Button>
+        {canPrintPoster && (
+          <Button variant="outline" asChild><Link href={`/kjoretoy/${id}/plakat`}>
+            <Printer className="mr-2 h-4 w-4" />
+            Skriv ut plakat
+          </Link></Button>
+        )}
+      </div>
 
       {/* Images */}
       {vehicle.imageUrls.length > 0 ? (
