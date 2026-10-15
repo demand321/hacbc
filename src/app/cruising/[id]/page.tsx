@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import { resizeImageFile } from "@/lib/image-resize";
 
 interface Waypoint {
   id: string;
@@ -256,10 +257,13 @@ export default function CruisingDetailPage() {
     }
   };
 
-  const handleUploadPhoto = async (file: File) => {
+  const handleUploadPhoto = async (rawFile: File) => {
     if (!signupSuccess && !isAdmin) return;
     setUploading(true);
     try {
+      const file = rawFile.type.startsWith("image/")
+        ? await resizeImageFile(rawFile)
+        : rawFile;
       const isLargeFile = file.size > 4 * 1024 * 1024;
 
       if (isLargeFile) {

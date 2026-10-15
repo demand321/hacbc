@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { resizeImageFile } from "@/lib/image-resize";
 
 export function AdminGalleryUpload({ albumId }: { albumId: string }) {
   const router = useRouter();
@@ -12,7 +13,10 @@ export function AdminGalleryUpload({ albumId }: { albumId: string }) {
 
   async function handleUpload(files: FileList) {
     setUploading(true);
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      const file = rawFile.type.startsWith("image/")
+        ? await resizeImageFile(rawFile)
+        : rawFile;
       const isLarge = file.size > 4 * 1024 * 1024;
       if (isLarge) {
         // Signed URL upload for large files (video)
