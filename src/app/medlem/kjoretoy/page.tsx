@@ -49,30 +49,34 @@ export default async function MyVehiclesPage() {
               key={vehicle.id}
               className="border-border transition-colors hover:border-hacbc-red/30"
             >
-              {vehicle.imageUrls.length > 0 && (
-                <div className="aspect-video overflow-hidden rounded-t-lg">
-                  <img
-                    src={vehicle.imageUrls[0]}
-                    alt={`${vehicle.make} ${vehicle.model}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
-              <CardContent className="p-4">
-                <h3 className="text-lg font-semibold">
-                  {vehicle.make} {vehicle.model}
-                </h3>
-                {vehicle.year && (
-                  <p className="text-sm text-muted-foreground">
-                    Årsmodell: {vehicle.year}
-                  </p>
+              <Link href={`/kjoretoy/${vehicle.id}`}>
+                {vehicle.imageUrls.length > 0 && (
+                  <div className="aspect-video overflow-hidden rounded-t-lg">
+                    <img
+                      src={vehicle.imageUrls[0]}
+                      alt={`${vehicle.make} ${vehicle.model}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 )}
-                {vehicle.description && (
-                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                    {vehicle.description}
-                  </p>
-                )}
-                <div className="mt-3 flex items-center gap-2">
+                <CardContent className="p-4 pb-0">
+                  <h3 className="text-lg font-semibold hover:text-hacbc-red">
+                    {vehicle.make} {vehicle.model}
+                  </h3>
+                  {vehicle.year && (
+                    <p className="text-sm text-muted-foreground">
+                      Årsmodell: {vehicle.year}
+                    </p>
+                  )}
+                  {vehicle.description && (
+                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                      {vehicle.description}
+                    </p>
+                  )}
+                </CardContent>
+              </Link>
+              <CardContent className="p-4 pt-3">
+                <div className="flex items-center gap-2">
                   {vehicle.published ? (
                     <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500">
                       <Eye className="h-3 w-3" />

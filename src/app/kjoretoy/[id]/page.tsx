@@ -14,10 +14,19 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const vehicle = await prisma.vehicle.findUnique({
-    where: { id, published: true },
-  });
-  if (!vehicle) return { title: "Kjøretøy ikke funnet" };
+  const [vehicle, session] = await Promise.all([
+    prisma.vehicle.findUnique({
+      where: { id },
+      select: { make: true, model: true, year: true, published: true, ownerId: true },
+    }),
+    getServerSession(authOptions),
+  ]);
+  const canView =
+    !!vehicle &&
+    (vehicle.published ||
+      session?.user.id === vehicle.ownerId ||
+      session?.user.role === "ADMIN");
+  if (!canView) return { title: "Kjøretøy ikke funnet" };
   return {
     title: `${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ""}`,
   };
@@ -32,7 +41,7 @@ export default async function VehicleDetailPage({
 
   const [vehicle, session] = await Promise.all([
     prisma.vehicle.findUnique({
-      where: { id, published: true },
+      where: { id },
       include: {
         owner: { select: { id: true, name: true, avatarUrl: true, memberStatus: true } },
       },
@@ -42,9 +51,13 @@ export default async function VehicleDetailPage({
 
   if (!vehicle || vehicle.owner.memberStatus === "DELETED") notFound();
 
-  const canPrintPoster =
-    !!session &&
-    (session.user.id === vehicle.owner.id || session.user.role === "ADMIN");
+  const isOwner = !!session && session.user.id === vehicle.owner.id;
+  const isAdmin = session?.user.role === "ADMIN";
+
+  // Unpublished vehicles are only visible to their owner or an admin.
+  if (!vehicle.published && !isOwner && !isAdmin) notFound();
+
+  const canPrintPoster = isOwner || isAdmin;
 
   const specs =
     vehicle.specs && typeof vehicle.specs === "object"
