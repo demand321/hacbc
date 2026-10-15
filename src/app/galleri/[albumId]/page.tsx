@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Heart, MessageCircle, Play, Upload } from "lucide-react";
+import { Heart, MessageCircle, Play, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoLightbox, { type LightboxPhoto } from "@/components/PhotoLightbox";
 import { resizeImageFile } from "@/lib/image-resize";
+import { BackButton } from "@/components/BackButton";
 
 interface Photo extends LightboxPhoto {
   caption: string | null;
@@ -118,24 +118,18 @@ export default function AlbumPhotosPage({
     return (
       <div className="mx-auto max-w-7xl px-4 py-12 text-center">
         <h1 className="text-2xl font-bold">Album ikke funnet</h1>
-        <Button variant="ghost" className="mt-4" asChild>
-          <Link href="/galleri">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Tilbake til galleri
-          </Link>
-        </Button>
+        <BackButton fallbackHref="/galleri" variant="ghost" className="mt-4">
+          Tilbake til galleri
+        </BackButton>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
-      <Button variant="ghost" className="mb-6" asChild>
-        <Link href="/galleri">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Tilbake til galleri
-        </Link>
-      </Button>
+      <BackButton fallbackHref="/galleri" variant="ghost" className="mb-6">
+        Tilbake til galleri
+      </BackButton>
 
       <div className="flex items-center gap-4">
         <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold uppercase tracking-tight sm:text-4xl">

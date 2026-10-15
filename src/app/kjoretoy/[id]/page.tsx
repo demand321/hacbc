@@ -5,8 +5,9 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-import { ArrowLeft, Car, Printer } from "lucide-react";
+import { Car, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/BackButton";
 
 export async function generateMetadata({
   params,
@@ -67,10 +68,7 @@ export default async function VehicleDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <div className="mb-6 flex items-center justify-between gap-2">
-        <Button variant="ghost" asChild><Link href="/kjoretoy">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Tilbake til kjøretøy
-        </Link></Button>
+        <BackButton fallbackHref="/kjoretoy">Tilbake til kjøretøy</BackButton>
         {canPrintPoster && (
           <Button variant="outline" asChild><Link href={`/kjoretoy/${id}/plakat`}>
             <Printer className="mr-2 h-4 w-4" />
