@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash2, ArrowLeft, Upload } from "lucide-react";
+import { Plus, Trash2, Upload } from "lucide-react";
 import { uploadVehicleImage } from "@/lib/upload-client";
+import { BackButton } from "@/components/BackButton";
 
 interface SpecEntry {
   key: string;
@@ -139,14 +140,7 @@ export default function EditVehiclePage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <Button
-        variant="ghost"
-        className="mb-6"
-        onClick={() => router.push("/medlem/kjoretoy")}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Tilbake
-      </Button>
+      <BackButton fallbackHref="/medlem/kjoretoy" variant="ghost" className="mb-6" />
 
       <h1 className="mb-8 font-[family-name:var(--font-heading)] text-3xl font-bold uppercase">
         Rediger <span className="text-primary">kjøretøy</span>

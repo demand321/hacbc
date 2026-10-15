@@ -2,10 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import dynamicImport from "next/dynamic";
 import {
-  ArrowLeft,
   MapPin,
   Clock,
   Ruler,
@@ -24,6 +22,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BackButton } from "@/components/BackButton";
 import { Label } from "@/components/ui/label";
 import PhotoLightbox, { type LightboxPhoto } from "@/components/PhotoLightbox";
 import { resizeImageFile } from "@/lib/image-resize";
@@ -414,25 +413,20 @@ export default function EventDetailPage({
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 text-center">
         <h1 className="text-2xl font-bold">Arrangement ikke funnet</h1>
-        <Button variant="ghost" className="mt-4" asChild>
-          <Link href="/arrangementer">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Tilbake til arrangementer
-          </Link>
-        </Button>
+        <BackButton fallbackHref="/arrangementer">Tilbake til arrangementer</BackButton>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
-      <Link
-        href="/arrangementer"
-        className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      <BackButton
+        fallbackHref="/arrangementer"
+        variant="ghost"
+        className="mb-6 text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" />
         Tilbake til arrangementer
-      </Link>
+      </BackButton>
 
       {/* Hero image */}
       {event.imageUrl && (

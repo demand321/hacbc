@@ -1,14 +1,12 @@
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import QRCode from "qrcode";
-import { ArrowLeft } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
 import { PrintButton } from "./PrintButton";
+import { BackButton } from "@/components/BackButton";
 
 export async function generateMetadata({
   params,
@@ -89,12 +87,7 @@ export default async function VehiclePosterPage({
 
       <div className="min-h-screen bg-slate-200 py-8 print:bg-[#0a0a0a] print:py-0">
         <div className="no-print mx-auto mb-6 flex max-w-[210mm] items-center justify-between px-4 print:hidden">
-          <Button asChild>
-            <Link href={`/kjoretoy/${id}`}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Tilbake
-            </Link>
-          </Button>
+          <BackButton fallbackHref={`/kjoretoy/${id}`} />
           <PrintButton />
         </div>
 

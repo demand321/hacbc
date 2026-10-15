@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
   MapPin,
@@ -12,7 +11,6 @@ import {
   Calendar,
   Users,
   Send,
-  ArrowLeft,
   MessageCircle,
   Camera,
   ChevronDown,
@@ -28,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import { resizeImageFile } from "@/lib/image-resize";
+import { BackButton } from "@/components/BackButton";
 
 interface Waypoint {
   id: string;
@@ -401,22 +400,22 @@ export default function CruisingDetailPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 text-center">
         <h1 className="text-2xl font-bold">Turen ble ikke funnet</h1>
-        <Link href="/cruising" className="mt-4 text-primary hover:underline">
+        <BackButton fallbackHref="/cruising" variant="link" className="mt-4">
           Tilbake til cruising
-        </Link>
+        </BackButton>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
-      <Link
-        href="/cruising"
-        className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      <BackButton
+        fallbackHref="/cruising"
+        variant="ghost"
+        className="mb-6 text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" />
         Tilbake til cruising
-      </Link>
+      </BackButton>
 
       {/* Header */}
       <div className="mb-8">
